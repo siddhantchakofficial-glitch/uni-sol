@@ -1,0 +1,444 @@
+import express from 'express';
+import Page from '../models/Page.js';
+import { authenticateUser, authorizeRole } from '../middleware/authMiddleware.js';
+import { logActivity } from '../services/activityLogger.js';
+
+const router = express.Router();
+
+// Mock store for offline/fallback mode
+let mockPages = [
+  {
+    _id: 'page_home',
+    id: 'page_home',
+    title: 'Home Page',
+    slug: 'home',
+    status: 'published',
+    authorName: 'Admin',
+    updatedAt: new Date(),
+    publishedAt: new Date(),
+    draftVersion: {
+      sections: [
+        {
+          id: 'sec_hero_1',
+          type: 'hero',
+          name: 'Hero Banner',
+          hidden: false,
+          order: 1,
+          content: {
+            badge: 'DPIIT Recognized Tech Enterprise',
+            heading: 'Next-Generation Enterprise Security & Digital Transformation',
+            description: 'UniSpark Innovation engineers AI-powered CCTV surveillance, biometric access control, fire safety systems, and unified PSIM command centers.',
+            primaryBtnText: 'Explore Capabilities',
+            primaryBtnLink: '/capabilities',
+            secondaryBtnText: 'About UniSpark',
+            secondaryBtnLink: '/about',
+            videoUrl: '',
+            imageUrl: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1600&q=80',
+          },
+          styles: { background: '#090d16', textColor: '#ffffff', paddingTop: 120, paddingBottom: 100 },
+          animation: 'fade',
+        },
+        {
+          id: 'sec_about_1',
+          type: 'about',
+          name: 'Who We Are',
+          hidden: false,
+          order: 2,
+          content: {
+            badge: 'Enterprise Security Excellence',
+            heading: 'Engineered for Scale, Built for Reliability',
+            description: 'We partner with enterprise organizations across Asia and the Middle East to deliver mission-critical infrastructure, IoT telemetry, and automated security orchestration.',
+            statNumber: '10M+',
+            statLabel: 'Protected Square Feet',
+          },
+          styles: { background: '#0b1120', textColor: '#f8fafc', paddingTop: 80, paddingBottom: 80 },
+          animation: 'slide',
+        },
+      ],
+      seo: { title: 'UniSpark Innovation - Enterprise Security', description: 'AI-Powered Security & Automation' },
+    },
+    publishedVersion: {
+      sections: [
+        {
+          id: 'sec_hero_1',
+          type: 'hero',
+          name: 'Hero Banner',
+          hidden: false,
+          order: 1,
+          content: {
+            badge: 'DPIIT Recognized Tech Enterprise',
+            heading: 'Next-Generation Enterprise Security & Digital Transformation',
+            description: 'UniSpark Innovation engineers AI-powered CCTV surveillance, biometric access control, fire safety systems, and unified PSIM command centers.',
+            primaryBtnText: 'Explore Capabilities',
+            primaryBtnLink: '/capabilities',
+            secondaryBtnText: 'About UniSpark',
+            secondaryBtnLink: '/about',
+            videoUrl: '',
+            imageUrl: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1600&q=80',
+          },
+          styles: { background: '#090d16', textColor: '#ffffff', paddingTop: 120, paddingBottom: 100 },
+          animation: 'fade',
+        },
+      ],
+      seo: { title: 'UniSpark Innovation - Enterprise Security', description: 'AI-Powered Security & Automation' },
+    },
+  },
+  {
+    _id: 'page_about',
+    id: 'page_about',
+    title: 'About Us',
+    slug: 'about',
+    status: 'published',
+    authorName: 'Admin',
+    updatedAt: new Date(),
+    publishedAt: new Date(),
+    draftVersion: {
+      sections: [
+        {
+          id: 'sec_about_hero',
+          type: 'hero',
+          name: 'About Hero',
+          hidden: false,
+          order: 1,
+          content: {
+            badge: 'Our Story & Legacy',
+            heading: 'Building Safe, Intelligent Infrastructure Globally',
+            description: 'Learn how UniSpark Innovation grew into a trusted leader in enterprise security and smart facility management.',
+            primaryBtnText: 'Contact Team',
+            primaryBtnLink: '/contact',
+          },
+          styles: { background: '#0f172a', textColor: '#ffffff', paddingTop: 100, paddingBottom: 80 },
+        },
+      ],
+      seo: { title: 'About UniSpark Innovation', description: 'Learn about our company mission and legacy.' },
+    },
+    publishedVersion: {
+      sections: [
+        {
+          id: 'sec_about_hero',
+          type: 'hero',
+          name: 'About Hero',
+          hidden: false,
+          order: 1,
+          content: {
+            badge: 'Our Story & Legacy',
+            heading: 'Building Safe, Intelligent Infrastructure Globally',
+            description: 'Learn how UniSpark Innovation grew into a trusted leader in enterprise security and smart facility management.',
+            primaryBtnText: 'Contact Team',
+            primaryBtnLink: '/contact',
+          },
+          styles: { background: '#0f172a', textColor: '#ffffff', paddingTop: 100, paddingBottom: 80 },
+        },
+      ],
+      seo: { title: 'About UniSpark Innovation', description: 'Learn about our company mission and legacy.' },
+    },
+  },
+];
+
+// PUBLIC ROUTE: Get published page by slug
+router.get('/public/:slug', async (req, res) => {
+  try {
+    const slug = req.params.slug.toLowerCase();
+
+    if (req.app.locals.dbConnected) {
+      const page = await Page.findOne({ slug, status: 'published' });
+      if (!page) {
+        return res.status(404).json({ success: false, message: 'Published page not found.' });
+      }
+      return res.json({
+        success: true,
+        page: {
+          id: page._id,
+          title: page.title,
+          slug: page.slug,
+          sections: page.publishedVersion.sections || [],
+          seo: page.publishedVersion.seo || {},
+          publishedAt: page.publishedAt,
+        },
+      });
+    }
+
+    const page = mockPages.find((p) => p.slug === slug && p.status === 'published');
+    if (!page) {
+      return res.status(404).json({ success: false, message: 'Published page not found.' });
+    }
+
+    res.json({
+      success: true,
+      page: {
+        id: page.id,
+        title: page.title,
+        slug: page.slug,
+        sections: page.publishedVersion.sections || [],
+        seo: page.publishedVersion.seo || {},
+        publishedAt: page.publishedAt,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// ADMIN ROUTES (Protected)
+router.use(authenticateUser);
+
+// GET /api/pages - List all pages
+router.get('/', async (req, res) => {
+  try {
+    if (req.app.locals.dbConnected) {
+      const pages = await Page.find().sort({ updatedAt: -1 });
+      return res.json({ success: true, pages });
+    }
+
+    res.json({ success: true, pages: mockPages });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// POST /api/pages - Create new page
+router.post('/', authorizeRole('SUPER_ADMIN', 'ADMIN', 'EDITOR'), async (req, res) => {
+  try {
+    const { title, slug } = req.body;
+    if (!title || !slug) {
+      return res.status(400).json({ success: false, message: 'Title and slug are required.' });
+    }
+
+    const cleanSlug = slug.toLowerCase().trim().replace(/[^a-z0-9-]/g, '-');
+
+    if (req.app.locals.dbConnected) {
+      const existing = await Page.findOne({ slug: cleanSlug });
+      if (existing) {
+        return res.status(400).json({ success: false, message: 'Page with this slug already exists.' });
+      }
+
+      const page = await Page.create({
+        title,
+        slug: cleanSlug,
+        status: 'draft',
+        author: req.user._id || req.user.id,
+        authorName: req.user.username || 'Admin',
+        draftVersion: {
+          sections: [],
+          seo: { title, description: '' },
+        },
+      });
+
+      await logActivity(req, 'PAGE_CREATE', `Created page: "${title}" (${cleanSlug})`);
+      return res.status(201).json({ success: true, page });
+    }
+
+    const newPage = {
+      _id: `page_${Date.now()}`,
+      id: `page_${Date.now()}`,
+      title,
+      slug: cleanSlug,
+      status: 'draft',
+      authorName: req.user.username || 'Admin',
+      updatedAt: new Date(),
+      createdAt: new Date(),
+      draftVersion: {
+        sections: [],
+        seo: { title, description: '' },
+      },
+      publishedVersion: { sections: [], seo: {} },
+    };
+
+    mockPages.unshift(newPage);
+    await logActivity(req, 'PAGE_CREATE', `Created page: "${title}" (${cleanSlug})`);
+    res.status(201).json({ success: true, page: newPage });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// GET /api/pages/:id - Get page details
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (req.app.locals.dbConnected) {
+      const page = await Page.findById(id);
+      if (!page) return res.status(404).json({ success: false, message: 'Page not found.' });
+      return res.json({ success: true, page });
+    }
+
+    const page = mockPages.find((p) => p._id === id || p.id === id);
+    if (!page) return res.status(404).json({ success: false, message: 'Page not found.' });
+    res.json({ success: true, page });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// PUT /api/pages/:id - Update page draft
+router.put('/:id', authorizeRole('SUPER_ADMIN', 'ADMIN', 'EDITOR', 'AUTHOR'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, slug, draftVersion } = req.body;
+
+    if (req.app.locals.dbConnected) {
+      const page = await Page.findById(id);
+      if (!page) return res.status(404).json({ success: false, message: 'Page not found.' });
+
+      if (title) page.title = title;
+      if (slug) page.slug = slug.toLowerCase().trim();
+      if (draftVersion) page.draftVersion = draftVersion;
+
+      await page.save();
+      await logActivity(req, 'PAGE_UPDATE', `Updated draft for page: "${page.title}"`);
+      return res.json({ success: true, page, message: 'Draft saved successfully.' });
+    }
+
+    const index = mockPages.findIndex((p) => p._id === id || p.id === id);
+    if (index === -1) return res.status(404).json({ success: false, message: 'Page not found.' });
+
+    if (title) mockPages[index].title = title;
+    if (slug) mockPages[index].slug = slug.toLowerCase().trim();
+    if (draftVersion) mockPages[index].draftVersion = draftVersion;
+    mockPages[index].updatedAt = new Date();
+
+    await logActivity(req, 'PAGE_UPDATE', `Updated draft for page: "${mockPages[index].title}"`);
+    res.json({ success: true, page: mockPages[index], message: 'Draft saved successfully.' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// POST /api/pages/:id/publish - Publish draft version
+router.post('/:id/publish', authorizeRole('SUPER_ADMIN', 'ADMIN', 'EDITOR'), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (req.app.locals.dbConnected) {
+      const page = await Page.findById(id);
+      if (!page) return res.status(404).json({ success: false, message: 'Page not found.' });
+
+      page.publishedVersion = {
+        sections: JSON.parse(JSON.stringify(page.draftVersion.sections || [])),
+        seo: JSON.parse(JSON.stringify(page.draftVersion.seo || {})),
+        layoutSettings: JSON.parse(JSON.stringify(page.draftVersion.layoutSettings || {})),
+      };
+      page.status = 'published';
+      page.publishedAt = new Date();
+
+      await page.save();
+      await logActivity(req, 'PAGE_PUBLISH', `Published page: "${page.title}" (${page.slug})`);
+      return res.json({ success: true, page, message: 'Page published successfully.' });
+    }
+
+    const index = mockPages.findIndex((p) => p._id === id || p.id === id);
+    if (index === -1) return res.status(404).json({ success: false, message: 'Page not found.' });
+
+    mockPages[index].publishedVersion = JSON.parse(JSON.stringify(mockPages[index].draftVersion));
+    mockPages[index].status = 'published';
+    mockPages[index].publishedAt = new Date();
+    mockPages[index].updatedAt = new Date();
+
+    await logActivity(req, 'PAGE_PUBLISH', `Published page: "${mockPages[index].title}" (${mockPages[index].slug})`);
+    res.json({ success: true, page: mockPages[index], message: 'Page published successfully.' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// POST /api/pages/:id/unpublish - Unpublish page
+router.post('/:id/unpublish', authorizeRole('SUPER_ADMIN', 'ADMIN'), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (req.app.locals.dbConnected) {
+      const page = await Page.findById(id);
+      if (!page) return res.status(404).json({ success: false, message: 'Page not found.' });
+      page.status = 'draft';
+      await page.save();
+      await logActivity(req, 'PAGE_UNPUBLISH', `Unpublished page: "${page.title}"`);
+      return res.json({ success: true, page });
+    }
+
+    const index = mockPages.findIndex((p) => p._id === id || p.id === id);
+    if (index !== -1) {
+      mockPages[index].status = 'draft';
+      await logActivity(req, 'PAGE_UNPUBLISH', `Unpublished page: "${mockPages[index].title}"`);
+    }
+    res.json({ success: true, page: mockPages[index] });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// POST /api/pages/:id/duplicate - Duplicate page
+router.post('/:id/duplicate', authorizeRole('SUPER_ADMIN', 'ADMIN', 'EDITOR'), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (req.app.locals.dbConnected) {
+      const original = await Page.findById(id);
+      if (!original) return res.status(404).json({ success: false, message: 'Page not found.' });
+
+      const newTitle = `${original.title} (Copy)`;
+      const newSlug = `${original.slug}-copy-${Date.now()}`;
+
+      const duplicate = await Page.create({
+        title: newTitle,
+        slug: newSlug,
+        status: 'draft',
+        author: req.user._id || req.user.id,
+        authorName: req.user.username || 'Admin',
+        draftVersion: JSON.parse(JSON.stringify(original.draftVersion)),
+      });
+
+      await logActivity(req, 'PAGE_DUPLICATE', `Duplicated page "${original.title}" into "${newTitle}"`);
+      return res.status(201).json({ success: true, page: duplicate });
+    }
+
+    const original = mockPages.find((p) => p._id === id || p.id === id);
+    if (!original) return res.status(404).json({ success: false, message: 'Page not found.' });
+
+    const newId = `page_${Date.now()}`;
+    const duplicate = {
+      _id: newId,
+      id: newId,
+      title: `${original.title} (Copy)`,
+      slug: `${original.slug}-copy-${Date.now()}`,
+      status: 'draft',
+      authorName: req.user.username || 'Admin',
+      updatedAt: new Date(),
+      createdAt: new Date(),
+      draftVersion: JSON.parse(JSON.stringify(original.draftVersion)),
+      publishedVersion: { sections: [], seo: {} },
+    };
+
+    mockPages.unshift(duplicate);
+    await logActivity(req, 'PAGE_DUPLICATE', `Duplicated page "${original.title}" into "${duplicate.title}"`);
+    res.status(201).json({ success: true, page: duplicate });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// DELETE /api/pages/:id - Delete page
+router.delete('/:id', authorizeRole('SUPER_ADMIN', 'ADMIN'), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (req.app.locals.dbConnected) {
+      const page = await Page.findByIdAndDelete(id);
+      if (!page) return res.status(404).json({ success: false, message: 'Page not found.' });
+      await logActivity(req, 'PAGE_DELETE', `Deleted page: "${page.title}"`);
+      return res.json({ success: true, message: 'Page deleted successfully.' });
+    }
+
+    const index = mockPages.findIndex((p) => p._id === id || p.id === id);
+    if (index !== -1) {
+      const deleted = mockPages.splice(index, 1)[0];
+      await logActivity(req, 'PAGE_DELETE', `Deleted page: "${deleted.title}"`);
+    }
+
+    res.json({ success: true, message: 'Page deleted successfully.' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+export default router;

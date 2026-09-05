@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemap.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://www.unisparkinnovation.com/</loc>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.unisparkinnovation.com/about</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.unisparkinnovation.com/capabilities</loc>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.unisparkinnovation.com/industries</loc>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.unisparkinnovation.com/international</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.unisparkinnovation.com/technology</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.unisparkinnovation.com/case-studies</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.unisparkinnovation.com/contact</loc>
+    <priority>0.9</priority>
+  </url>
+</urlset>

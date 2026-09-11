@@ -4,6 +4,7 @@ import FooterLinks from './FooterLinks';
 import SocialLinks from './SocialLinks';
 import Newsletter from './Newsletter';
 import { ENV } from '../../config/env';
+import logoImg from '../../assets/images/unispark-logo.png';
 
 export const Footer = () => {
   return (
@@ -15,7 +16,7 @@ export const Footer = () => {
           <div className="lg:col-span-4 space-y-5">
             <Link to="/" className="inline-flex rounded-md bg-white p-1" aria-label="UniSpark Innovation home">
               <img
-                src="/src/assets/images/unispark-logo.png"
+                src={logoImg}
                 alt="UniSpark Innovation"
                 className="h-16 w-auto"
               />

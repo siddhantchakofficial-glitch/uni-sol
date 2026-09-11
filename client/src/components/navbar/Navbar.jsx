@@ -5,6 +5,7 @@ import DesktopNav from './DesktopNav';
 import MobileMenu from './MobileMenu';
 import { useSiteContext } from '../../context/SiteContext';
 import { useAuth } from '../../context/AuthContext';
+import logoImg from '../../assets/images/unispark-logo.png';
 
 export const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -90,7 +91,7 @@ export const Navbar = () => {
             aria-label="UniSpark Innovation home"
           >
             <img
-              src="/src/assets/images/unispark-logo.png"
+              src={logoImg}
               alt="UniSpark Innovation"
               className="h-11 sm:h-12 w-auto object-contain"
             />

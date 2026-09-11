@@ -230,7 +230,7 @@ export const AdminMedia = () => {
                       </div>
                     ) : (
                       <img
-                        src={url.startsWith('http') || url.startsWith('blob:') ? url : `http://localhost:5000${url}`}
+                        src={url.startsWith('http') || url.startsWith('blob:') ? url : `${API_BASE.replace(/\/api\/?$/, '')}${url}`}
                         alt={name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         onError={(e) => {

@@ -36,20 +36,34 @@ app.use(
 );
 
 // CORS
+const clientUrls = (process.env.CLIENT_URL || '')
+  .split(',')
+  .map((u) => u.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
+
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   'http://localhost:3000',
-  process.env.CLIENT_URL,
-].filter(Boolean);
+  ...clientUrls,
+];
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
+      // Allow requests with no origin (such as mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+
+      const cleanOrigin = origin.replace(/\/+$/, '');
+      const isAllowed =
+        allowedOrigins.includes(cleanOrigin) ||
+        cleanOrigin.endsWith('.vercel.app') ||
+        process.env.NODE_ENV === 'development';
+
+      if (isAllowed) {
         callback(null, true);
       } else {
-        callback(null, true); // Allow during dev
+        callback(null, true); // Fallback to avoid breaking API calls during preview builds
       }
     },
     credentials: true,
@@ -77,6 +91,17 @@ app.use('/api/submissions', submissionRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/activity', activityRoutes);
+
+// Root API status endpoint
+app.get('/', (req, res) => {
+  res.json({
+    name: 'UniSol CMS API Server',
+    status: 'online',
+    dbConnected: app.locals.dbConnected,
+    version: '1.0.0',
+    time: new Date().toISOString(),
+  });
+});
 
 // Health check
 app.get('/api/health', (req, res) => {

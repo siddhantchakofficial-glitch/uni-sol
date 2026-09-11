@@ -226,7 +226,7 @@ export const AdminDashboard = () => {
           <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 space-y-2 text-xs">
             <div className="flex justify-between">
               <span className="text-gray-500">API Gateway:</span>
-              <span className="font-mono text-gray-800">http://localhost:5000/api</span>
+              <span className="font-mono text-gray-800">{API_BASE}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">Database Engine:</span>

@@ -8,5 +8,8 @@
     "client": "npm --prefix client run dev",
     "seed": "npm --prefix server run seed",
     "build:client": "npm --prefix client run build"
+  },
+  "dependencies": {
+    "mongodb": "^7.6.0"
   }
 }

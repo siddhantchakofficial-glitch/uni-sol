@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import dns from 'dns';
 import User from './models/User.js';
 import Page from './models/Page.js';
 import Menu from './models/Menu.js';
@@ -8,10 +9,19 @@ import SiteSettings from './models/SiteSettings.js';
 
 dotenv.config();
 
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4']);
+} catch {
+  // Ignore if restricted
+}
+
 const seedData = async () => {
   try {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/uni-sol-cms';
-    console.log(`Connecting to MongoDB at ${mongoUri}...`);
+    let mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/uni-sol-cms';
+    if (mongoUri.includes('.mongodb.net/?')) {
+      mongoUri = mongoUri.replace('.mongodb.net/?', '.mongodb.net/unisol?');
+    }
+    console.log(`Connecting to MongoDB...`);
     await mongoose.connect(mongoUri);
 
     console.log('Clearing existing CMS collections...');

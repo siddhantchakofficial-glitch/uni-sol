@@ -5,16 +5,42 @@ import Card from '../../components/ui/Card';
 import ContactForm from '../../components/forms/ContactForm';
 import { ENV } from '../../config/env';
 import { FaPhoneAlt, FaEnvelope, FaMapMarkerAlt, FaClock } from 'react-icons/fa';
+import useCMS from '../../hooks/useCMS';
+import { useSiteContext } from '../../context/SiteContext';
+import images from '../../assets/images';
 
 export const Contact = () => {
+  const { content } = useCMS('contact', {});
+  const { siteSettings } = useSiteContext();
+
+  const hero = content?.hero || {};
+  const offices = (Array.isArray(content?.offices) && content.offices.length > 0)
+    ? content.offices
+    : [
+        {
+          id: 'off_1',
+          country: 'India (Corporate HQ)',
+          address: siteSettings?.general?.address || ENV.ADDRESS_INDIA,
+          phone: siteSettings?.general?.phone || ENV.CONTACT_PHONE_INDIA,
+          email: siteSettings?.general?.contactEmail || ENV.CONTACT_EMAIL,
+        },
+        {
+          id: 'off_2',
+          country: 'UAE (Regional Branch)',
+          address: ENV.ADDRESS_UAE,
+          phone: ENV.CONTACT_PHONE_UAE,
+          email: 'uae@unisparkinnovation.com',
+        },
+      ];
+
   return (
     <div>
       <PageHero
-        badge="Contact Us"
-        title="Get in Touch with Our Expert Team"
-        description="Have a technical inquiry, maintenance contract request, or project specification? Connect directly with our solutions team."
+        badge={hero.badge || "Contact Us"}
+        title={hero.title || "Get in Touch with Our Expert Team"}
+        description={hero.subtitle || "Have a technical inquiry, maintenance contract request, or project specification? Connect directly with our solutions team."}
         breadcrumbs={[{ label: 'Contact' }]}
-        image="/src/assets/images/contact-bg.jpg"
+        image={hero.imageUrl || images.contactBg}
       />
 
       <section className="py-20 bg-[#f1f9ff]">
@@ -30,30 +56,28 @@ export const Contact = () => {
               />
 
               <div className="space-y-4">
-                <Card className="space-y-3">
-                  <div className="flex items-center gap-3 text-blue-400 font-bold text-sm">
-                    <FaMapMarkerAlt className="w-5 h-5" />
-                    <span>India Corporate Headquarters</span>
-                  </div>
-                  <p className="text-xs text-slate-300">{ENV.ADDRESS_INDIA}</p>
-                  <p className="text-xs text-slate-400">Phone: {ENV.CONTACT_PHONE_INDIA}</p>
-                </Card>
-
-                <Card className="space-y-3">
-                  <div className="flex items-center gap-3 text-cyan-400 font-bold text-sm">
-                    <FaMapMarkerAlt className="w-5 h-5" />
-                    <span>UAE Regional Branch</span>
-                  </div>
-                  <p className="text-xs text-slate-300">{ENV.ADDRESS_UAE}</p>
-                  <p className="text-xs text-slate-400">Phone: {ENV.CONTACT_PHONE_UAE}</p>
-                </Card>
+                {offices.map((office, idx) => (
+                  <Card key={office.id || idx} className="space-y-2">
+                    <div className="flex items-center gap-3 text-blue-500 font-bold text-sm">
+                      <FaMapMarkerAlt className="w-5 h-5 flex-shrink-0" />
+                      <span>{office.country || office.city}</span>
+                    </div>
+                    <p className="text-xs text-gray-600">{office.address}</p>
+                    <p className="text-xs text-gray-500 font-mono">Phone: {office.phone}</p>
+                    {office.email && (
+                      <p className="text-xs text-[#0470aa] hover:underline">
+                        <a href={`mailto:${office.email}`}>{office.email}</a>
+                      </p>
+                    )}
+                  </Card>
+                ))}
 
                 <Card className="flex items-center gap-4">
-                  <FaEnvelope className="w-6 h-6 text-blue-400 flex-shrink-0" />
+                  <FaEnvelope className="w-6 h-6 text-blue-500 flex-shrink-0" />
                   <div>
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Email Inquiries</span>
-                    <a href={`mailto:${ENV.CONTACT_EMAIL}`} className="text-sm font-semibold text-slate-100 hover:text-blue-400">
-                      {ENV.CONTACT_EMAIL}
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider block">Email Inquiries</span>
+                    <a href={`mailto:${siteSettings?.general?.contactEmail || ENV.CONTACT_EMAIL}`} className="text-sm font-semibold text-gray-900 hover:text-blue-500">
+                      {siteSettings?.general?.contactEmail || ENV.CONTACT_EMAIL}
                     </a>
                   </div>
                 </Card>

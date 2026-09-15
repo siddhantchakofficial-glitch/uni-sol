@@ -4,18 +4,26 @@ import Story from './Story';
 import MissionVision from './Mission';
 import Leadership from './Leadership';
 import CTASection from '../../components/common/CTASection';
+import useCMS from '../../hooks/useCMS';
+import images from '../../assets/images';
 
 export const About = () => {
+  const { content } = useCMS('about', {});
+
+  const banner = content?.banner || {};
+  const overview = content?.overview || {};
+  const glanceCards = content?.glanceCards || [];
+
   return (
     <div>
       <PageHero
-        badge="About UniSpark Innovation"
-        title="Engineering Trust, Security & Digital Excellence"
-        description="Learn more about our DPIIT-recognized enterprise journey, leadership vision, and regional presence across India & UAE."
+        badge={banner.badge || "About UniSpark Innovation"}
+        title={banner.title || "Engineering Trust, Security & Digital Excellence"}
+        description={banner.subtitle || "Learn more about our DPIIT-recognized enterprise journey, leadership vision, and regional presence across India & UAE."}
         breadcrumbs={[{ label: 'About Us' }]}
-        image="/src/assets/images/abt-sec.jpg"
+        image={banner.imageUrl || images.abtSec}
       />
-      <Story />
+      <Story overview={overview} glanceCards={glanceCards} />
       <MissionVision />
       <Leadership />
       <CTASection />

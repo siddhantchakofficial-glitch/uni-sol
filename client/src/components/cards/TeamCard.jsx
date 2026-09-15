@@ -1,12 +1,13 @@
 import React from 'react';
 import Card from '../ui/Card';
+import images from '../../assets/images';
 
 export const TeamCard = ({ member }) => {
   return (
     <Card className="p-0 overflow-hidden group">
       <div className="h-64 overflow-hidden relative">
         <img
-          src={member.image || '/src/assets/images/abt-sec.jpg'}
+          src={member.image || images.abtSec}
           alt={member.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />

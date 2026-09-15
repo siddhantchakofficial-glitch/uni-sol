@@ -3,6 +3,7 @@ import PageHero from '../../components/common/PageHero';
 import CaseStudyCard from '../../components/cards/CaseStudyCard';
 import CTASection from '../../components/common/CTASection';
 import { CASE_STUDIES } from '../../services/caseStudyService';
+import images from '../../assets/images';
 
 export const CaseStudies = () => {
   return (
@@ -12,7 +13,7 @@ export const CaseStudies = () => {
         title="Enterprise Case Studies & Success Stories"
         description="Explore how UniSpark Innovation designs and maintains critical security infrastructure across complex site environments."
         breadcrumbs={[{ label: 'Case Studies' }]}
-        image="/src/assets/images/sol1.jpg"
+        image={images.sol1}
       />
 
       <section className="py-20 bg-[#f1f9ff]">

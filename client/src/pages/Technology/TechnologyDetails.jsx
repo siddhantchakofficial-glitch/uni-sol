@@ -2,6 +2,7 @@ import React from 'react';
 import PageHero from '../../components/common/PageHero';
 import SectionHeader from '../../components/common/SectionHeader';
 import CTASection from '../../components/common/CTASection';
+import images from '../../assets/images';
 
 export const TechnologyDetails = () => {
   return (
@@ -14,7 +15,7 @@ export const TechnologyDetails = () => {
           { label: 'Technology', path: '/technology' },
           { label: 'Tech Stack' },
         ]}
-        image="/src/assets/images/sol1.jpg"
+        image={images.sol1}
       />
       <section className="py-20 bg-[#f1f9ff]">
         <div className="max-w-4xl mx-auto px-4 text-slate-300 space-y-6 text-sm leading-relaxed">

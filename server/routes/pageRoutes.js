@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import Page from '../models/Page.js';
 import { authenticateUser, authorizeRole } from '../middleware/authMiddleware.js';
 import { logActivity } from '../services/activityLogger.js';
@@ -135,15 +136,26 @@ let mockPages = [
   },
 ];
 
+// Helper to find page by MongoDB ID or slug
+const findPageByIdOrSlug = async (identifier) => {
+  if (!identifier) return null;
+  const clean = identifier.toLowerCase().trim();
+  if (mongoose.Types.ObjectId.isValid(identifier)) {
+    const page = await Page.findById(identifier);
+    if (page) return page;
+  }
+  return await Page.findOne({ slug: clean });
+};
+
 // PUBLIC ROUTE: Get published page by slug
 router.get('/public/:slug', async (req, res) => {
   try {
-    const slug = req.params.slug.toLowerCase();
+    const slug = req.params.slug.toLowerCase().trim();
 
     if (req.app.locals.dbConnected) {
-      const page = await Page.findOne({ slug, status: 'published' });
+      let page = await Page.findOne({ slug });
       if (!page) {
-        return res.status(404).json({ success: false, message: 'Published page not found.' });
+        return res.status(404).json({ success: false, message: 'Page not found.' });
       }
       return res.json({
         success: true,
@@ -151,16 +163,18 @@ router.get('/public/:slug', async (req, res) => {
           id: page._id,
           title: page.title,
           slug: page.slug,
-          sections: page.publishedVersion.sections || [],
-          seo: page.publishedVersion.seo || {},
+          status: page.status,
+          content: page.publishedVersion?.content || page.draftVersion?.content || {},
+          sections: page.publishedVersion?.sections || page.draftVersion?.sections || [],
+          seo: page.publishedVersion?.seo || page.draftVersion?.seo || {},
           publishedAt: page.publishedAt,
         },
       });
     }
 
-    const page = mockPages.find((p) => p.slug === slug && p.status === 'published');
+    const page = mockPages.find((p) => p.slug === slug);
     if (!page) {
-      return res.status(404).json({ success: false, message: 'Published page not found.' });
+      return res.status(404).json({ success: false, message: 'Page not found.' });
     }
 
     res.json({
@@ -169,8 +183,10 @@ router.get('/public/:slug', async (req, res) => {
         id: page.id,
         title: page.title,
         slug: page.slug,
-        sections: page.publishedVersion.sections || [],
-        seo: page.publishedVersion.seo || {},
+        status: page.status,
+        content: page.publishedVersion?.content || page.draftVersion?.content || {},
+        sections: page.publishedVersion?.sections || [],
+        seo: page.publishedVersion?.seo || {},
         publishedAt: page.publishedAt,
       },
     });
@@ -215,13 +231,20 @@ router.post('/', authorizeRole('SUPER_ADMIN', 'ADMIN', 'EDITOR'), async (req, re
       const page = await Page.create({
         title,
         slug: cleanSlug,
-        status: 'draft',
+        status: 'published',
         author: req.user._id || req.user.id,
         authorName: req.user.username || 'Admin',
         draftVersion: {
           sections: [],
           seo: { title, description: '' },
+          content: {},
         },
+        publishedVersion: {
+          sections: [],
+          seo: { title, description: '' },
+          content: {},
+        },
+        publishedAt: new Date(),
       });
 
       await logActivity(req, 'PAGE_CREATE', `Created page: "${title}" (${cleanSlug})`);
@@ -233,15 +256,13 @@ router.post('/', authorizeRole('SUPER_ADMIN', 'ADMIN', 'EDITOR'), async (req, re
       id: `page_${Date.now()}`,
       title,
       slug: cleanSlug,
-      status: 'draft',
+      status: 'published',
       authorName: req.user.username || 'Admin',
       updatedAt: new Date(),
       createdAt: new Date(),
-      draftVersion: {
-        sections: [],
-        seo: { title, description: '' },
-      },
-      publishedVersion: { sections: [], seo: {} },
+      draftVersion: { sections: [], seo: { title, description: '' }, content: {} },
+      publishedVersion: { sections: [], seo: {}, content: {} },
+      publishedAt: new Date(),
     };
 
     mockPages.unshift(newPage);
@@ -252,54 +273,140 @@ router.post('/', authorizeRole('SUPER_ADMIN', 'ADMIN', 'EDITOR'), async (req, re
   }
 });
 
-// GET /api/pages/:id - Get page details
+// GET /api/pages/:id - Get page details (supports mongo ID or slug)
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
     if (req.app.locals.dbConnected) {
-      const page = await Page.findById(id);
-      if (!page) return res.status(404).json({ success: false, message: 'Page not found.' });
+      let page = await findPageByIdOrSlug(id);
+      if (!page) {
+        // Auto-create initial skeleton if looking up standard CMS page
+        const standardPages = {
+          home: 'Home Page',
+          about: 'About Us',
+          capabilities: 'Capabilities & Solutions',
+          industries: 'Industry Verticals',
+          contact: 'Contact Us',
+        };
+        if (standardPages[id.toLowerCase()]) {
+          page = await Page.create({
+            title: standardPages[id.toLowerCase()],
+            slug: id.toLowerCase(),
+            status: 'published',
+            authorName: 'Admin',
+            draftVersion: { content: {}, sections: [], seo: {} },
+            publishedVersion: { content: {}, sections: [], seo: {} },
+            publishedAt: new Date(),
+          });
+        } else {
+          return res.status(404).json({ success: false, message: 'Page not found.' });
+        }
+      }
       return res.json({ success: true, page });
     }
 
-    const page = mockPages.find((p) => p._id === id || p.id === id);
-    if (!page) return res.status(404).json({ success: false, message: 'Page not found.' });
+    let page = mockPages.find((p) => p._id === id || p.id === id || p.slug === id.toLowerCase());
+    if (!page) {
+      page = {
+        _id: `page_${id}`,
+        id: `page_${id}`,
+        title: id.toUpperCase(),
+        slug: id.toLowerCase(),
+        status: 'published',
+        draftVersion: { content: {}, sections: [], seo: {} },
+        publishedVersion: { content: {}, sections: [], seo: {} },
+      };
+      mockPages.push(page);
+    }
     res.json({ success: true, page });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 });
 
-// PUT /api/pages/:id - Update page draft
+// PUT /api/pages/:id - Update page content & publish in real-time
 router.put('/:id', authorizeRole('SUPER_ADMIN', 'ADMIN', 'EDITOR', 'AUTHOR'), async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, slug, draftVersion } = req.body;
+    const { title, slug, draftVersion, content, sections, seo } = req.body;
 
     if (req.app.locals.dbConnected) {
-      const page = await Page.findById(id);
-      if (!page) return res.status(404).json({ success: false, message: 'Page not found.' });
+      let page = await findPageByIdOrSlug(id);
+      if (!page) {
+        page = new Page({
+          title: title || id,
+          slug: (slug || id).toLowerCase().trim(),
+          status: 'published',
+          author: req.user._id || req.user.id,
+          authorName: req.user.username || 'Admin',
+          draftVersion: {},
+          publishedVersion: {},
+        });
+      }
 
       if (title) page.title = title;
       if (slug) page.slug = slug.toLowerCase().trim();
-      if (draftVersion) page.draftVersion = draftVersion;
+
+      // Store visual editor content directly
+      const incomingContent = content || draftVersion?.content;
+      if (incomingContent) {
+        page.draftVersion = page.draftVersion || {};
+        page.draftVersion.content = incomingContent;
+
+        page.publishedVersion = page.publishedVersion || {};
+        page.publishedVersion.content = incomingContent;
+      }
+
+      if (draftVersion) {
+        page.draftVersion = { ...page.draftVersion, ...draftVersion };
+      }
+      if (sections) {
+        page.draftVersion.sections = sections;
+        page.publishedVersion.sections = sections;
+      }
+      if (seo) {
+        page.draftVersion.seo = seo;
+        page.publishedVersion.seo = seo;
+      }
+
+      page.status = 'published';
+      page.publishedAt = new Date();
+      page.markModified('draftVersion');
+      page.markModified('publishedVersion');
 
       await page.save();
-      await logActivity(req, 'PAGE_UPDATE', `Updated draft for page: "${page.title}"`);
-      return res.json({ success: true, page, message: 'Draft saved successfully.' });
+      await logActivity(req, 'PAGE_UPDATE', `Published real-time changes for page: "${page.title}" (${page.slug})`);
+      return res.json({ success: true, page, message: 'Changes saved and published live.' });
     }
 
-    const index = mockPages.findIndex((p) => p._id === id || p.id === id);
-    if (index === -1) return res.status(404).json({ success: false, message: 'Page not found.' });
+    let index = mockPages.findIndex((p) => p._id === id || p.id === id || p.slug === id.toLowerCase());
+    if (index === -1) {
+      mockPages.push({
+        _id: `page_${id}`,
+        id: `page_${id}`,
+        title: title || id,
+        slug: (slug || id).toLowerCase(),
+        status: 'published',
+        draftVersion: { content: content || {} },
+        publishedVersion: { content: content || {} },
+        updatedAt: new Date(),
+      });
+      index = mockPages.length - 1;
+    } else {
+      if (title) mockPages[index].title = title;
+      if (slug) mockPages[index].slug = slug.toLowerCase().trim();
+      const incomingContent = content || draftVersion?.content;
+      if (incomingContent) {
+        mockPages[index].draftVersion.content = incomingContent;
+        mockPages[index].publishedVersion.content = incomingContent;
+      }
+      mockPages[index].status = 'published';
+      mockPages[index].updatedAt = new Date();
+    }
 
-    if (title) mockPages[index].title = title;
-    if (slug) mockPages[index].slug = slug.toLowerCase().trim();
-    if (draftVersion) mockPages[index].draftVersion = draftVersion;
-    mockPages[index].updatedAt = new Date();
-
-    await logActivity(req, 'PAGE_UPDATE', `Updated draft for page: "${mockPages[index].title}"`);
-    res.json({ success: true, page: mockPages[index], message: 'Draft saved successfully.' });
+    await logActivity(req, 'PAGE_UPDATE', `Updated page: "${mockPages[index].title}"`);
+    res.json({ success: true, page: mockPages[index], message: 'Changes saved and published live.' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

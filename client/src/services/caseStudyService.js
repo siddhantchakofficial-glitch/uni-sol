@@ -1,3 +1,5 @@
+import images from '../assets/images';
+
 export const CASE_STUDIES = [
   {
     id: '1',
@@ -9,7 +11,7 @@ export const CASE_STUDIES = [
     metrics: ['75% Incident Reduction', '100% Coverage Uptime', 'SLA Response < 2 Mins'],
     challenge: 'Legacy analog CCTV and isolated fence alarms created security blind spots across a 15km perimeter.',
     solution: 'Integrated thermal PTZ cameras, fiber intrusion sensors, and AI facial recognition with automated barrier triggers.',
-    image: '/src/assets/images/sol1.jpg',
+    image: images.sol1,
   },
   {
     id: '2',
@@ -21,7 +23,7 @@ export const CASE_STUDIES = [
     metrics: ['10,000+ Daily Users', 'Zero Touchless Latency', '99.99% Uptime'],
     challenge: 'High congestion during peak hours with traditional card swipe readers and manual paper sign-ins for guests.',
     solution: 'Replaced swipe readers with high-throughput facial recognition turnstiles and QR-code visitor pre-registration.',
-    image: '/src/assets/images/sol2.jpg',
+    image: images.sol2,
   },
   {
     id: '3',
@@ -33,7 +35,7 @@ export const CASE_STUDIES = [
     metrics: ['Zero False Alarms', 'Sub-second Fire Detection', '100% Civil Defense Compliant'],
     challenge: 'Standard optical cameras failed in dense steam and flammable environment conditions.',
     solution: 'Certified ATEX explosion-proof thermal imaging cameras combined with optical flame detectors linked to suppression units.',
-    image: '/src/assets/images/sol4.jpg',
+    image: images.sol4,
   },
 ];
 

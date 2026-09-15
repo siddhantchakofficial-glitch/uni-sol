@@ -8,6 +8,7 @@ import CTASection from '../../components/common/CTASection';
 import { capabilityService } from '../../services/capabilityService';
 import { useSiteContext } from '../../context/SiteContext';
 import { FaCheckCircle, FaCalendarAlt } from 'react-icons/fa';
+import images from '../../assets/images';
 
 export const CapabilityDetails = () => {
   const { slug } = useParams();
@@ -30,7 +31,7 @@ export const CapabilityDetails = () => {
           { label: 'Capabilities', path: '/capabilities' },
           { label: capability.title },
         ]}
-        image="/src/assets/images/sol1.jpg"
+        image={images.sol1}
       />
 
       <section className="py-20 bg-[#f1f9ff] border-b border-slate-800/60">

@@ -6,6 +6,7 @@ import Card from '../../components/ui/Card';
 import CTASection from '../../components/common/CTASection';
 import { industryService } from '../../services/industryService';
 import { FaCheckCircle } from 'react-icons/fa';
+import images from '../../assets/images';
 
 export const IndustryDetails = () => {
   const { slug } = useParams();
@@ -27,7 +28,7 @@ export const IndustryDetails = () => {
           { label: 'Industries', path: '/industries' },
           { label: industry.title },
         ]}
-        image="/src/assets/images/ind-bg.jpg"
+        image={images.indBg}
       />
 
       <section className="py-20 bg-[#f1f9ff] border-b border-slate-800/60">

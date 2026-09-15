@@ -2,6 +2,7 @@ import React from 'react';
 import PageHero from '../../components/common/PageHero';
 import SectionHeader from '../../components/common/SectionHeader';
 import CTASection from '../../components/common/CTASection';
+import images from '../../assets/images';
 
 export const TechnologySecurity = () => {
   return (
@@ -14,7 +15,7 @@ export const TechnologySecurity = () => {
           { label: 'International', path: '/international' },
           { label: 'Technology & Security' },
         ]}
-        image="/src/assets/images/pr-bg.jpg"
+        image={images.prBg}
       />
       <section className="py-20 bg-[#f1f9ff]">
         <div className="max-w-4xl mx-auto px-4 text-slate-300 space-y-6 text-sm leading-relaxed">

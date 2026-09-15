@@ -31,6 +31,7 @@ const siteSettingsSchema = new mongoose.Schema(
       paymentGateway: { type: String, default: 'Razorpay' },
       emailProvider: { type: String, default: 'SMTP' },
     },
+    seo: { type: mongoose.Schema.Types.Mixed, default: {} },
   },
   { timestamps: true }
 );

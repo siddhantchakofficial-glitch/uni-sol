@@ -4,6 +4,7 @@ import PageHero from '../../components/common/PageHero';
 import Card from '../../components/ui/Card';
 import CTASection from '../../components/common/CTASection';
 import { FaGlobe, FaUsers, FaShieldAlt, FaUserCheck, FaBriefcase, FaFileInvoiceDollar, FaLaptopCode, FaPaperPlane, FaArrowRight } from 'react-icons/fa';
+import images from '../../assets/images';
 
 export const International = () => {
   const subservices = [
@@ -24,7 +25,7 @@ export const International = () => {
         title="International Services & Workforce Consulting"
         description="Delivering global IT technology, specialized technical workforce, HR solutions, and cross-border security deployment across India, UAE, and international markets."
         breadcrumbs={[{ label: 'International' }]}
-        image="/src/assets/images/pr-bg.jpg"
+        image={images.prBg}
       />
 
       <section className="py-20 bg-[#f1f9ff]">

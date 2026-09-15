@@ -1,13 +1,18 @@
 import React from 'react';
 import { FaLinkedinIn, FaTwitter, FaFacebookF, FaInstagram, FaYoutube } from 'react-icons/fa';
 
+import { useSiteContext } from '../../context/SiteContext';
+
 export const SocialLinks = () => {
+  const { siteSettings } = useSiteContext();
+  const soc = siteSettings?.social || {};
+
   const socials = [
-    { icon: FaLinkedinIn, href: 'https://linkedin.com', label: 'LinkedIn' },
-    { icon: FaTwitter, href: 'https://twitter.com', label: 'Twitter' },
-    { icon: FaFacebookF, href: 'https://facebook.com', label: 'Facebook' },
-    { icon: FaInstagram, href: 'https://instagram.com', label: 'Instagram' },
-    { icon: FaYoutube, href: 'https://youtube.com', label: 'YouTube' },
+    { icon: FaLinkedinIn, href: soc.linkedin || 'https://linkedin.com', label: 'LinkedIn' },
+    { icon: FaTwitter, href: soc.x || soc.twitter || 'https://x.com', label: 'X (Twitter)' },
+    { icon: FaFacebookF, href: soc.facebook || 'https://facebook.com', label: 'Facebook' },
+    { icon: FaInstagram, href: soc.instagram || 'https://instagram.com', label: 'Instagram' },
+    { icon: FaYoutube, href: soc.youtube || 'https://youtube.com', label: 'YouTube' },
   ];
 
   return (

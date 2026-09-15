@@ -31,6 +31,7 @@ const pageVersionSchema = new mongoose.Schema(
     sections: [sectionSchema],
     seo: { type: seoSchema, default: () => ({}) },
     layoutSettings: { type: mongoose.Schema.Types.Mixed, default: {} },
+    content: { type: mongoose.Schema.Types.Mixed, default: {} },
   },
   { _id: false }
 );

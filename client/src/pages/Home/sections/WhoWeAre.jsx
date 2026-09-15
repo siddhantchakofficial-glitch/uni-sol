@@ -2,8 +2,16 @@ import React from 'react';
 import SectionHeader from '../../../components/common/SectionHeader';
 import Badge from '../../../components/ui/Badge';
 import { FaCheckCircle, FaAward, FaBuilding, FaGlobe } from 'react-icons/fa';
+import images from '../../../assets/images';
 
-export const WhoWeAre = () => {
+export const WhoWeAre = ({ data = {} }) => {
+  const badge = data?.badge || 'Who We Are';
+  const title = data?.title || 'Architects of Enterprise Security & Smart Infrastructure';
+  const desc1 = data?.description1 || 'UNISPARK INNOVATION PRIVATE LIMITED is a startup recognized by the Department for Promotion of Industry and Internal Trade (DPIIT), Government of India.';
+  const desc2 = data?.description2 || 'Founded in 2020 and headquartered in New Delhi with strategic operations in Dubai, UniSpark Innovation delivers comprehensive physical security systems, CCTV video intelligence, access governance, and managed IT services to commercial enterprises, infrastructure projects, and government installations.';
+  const statNum = data?.statNumber || '24+';
+  const statLbl = data?.statLabel || 'Years Executive Tech Leadership';
+
   return (
     <section className="py-20 bg-[#f1f9ff] border-b border-slate-800/60 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -12,7 +20,7 @@ export const WhoWeAre = () => {
           <div className="lg:col-span-6 relative">
             <div className="relative rounded-2xl overflow-hidden border border-slate-800 shadow-2xl">
               <img
-                src="/src/assets/images/abt-sec.jpg"
+                src={data?.imageUrl || images.abtSec}
                 alt="UniSpark Innovation Command Center"
                 className="w-full h-100 object-cover"
               />
@@ -23,10 +31,10 @@ export const WhoWeAre = () => {
             <div className="absolute -bottom-6 -right-6 sm:bottom-6 sm:right-6 bg-[#f1f9ff]/95 border border-blue-500/40 p-5 rounded-2xl shadow-2xl backdrop-blur-xl max-w-xs space-y-1">
               <div className="flex items-center gap-3 text-blue-400">
                 <FaAward className="w-8 h-8" />
-                <span className="text-3xl font-black text-white">24+</span>
+                <span className="text-3xl font-black text-white">{statNum}</span>
               </div>
               <p className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                Years Executive Tech Leadership
+                {statLbl}
               </p>
             </div>
           </div>
@@ -34,14 +42,14 @@ export const WhoWeAre = () => {
           {/* Text Content */}
           <div className="lg:col-span-6 space-y-6">
             <SectionHeader
-              badge="Who We Are"
-              title="Architects of Enterprise Security & Smart Infrastructure"
-              subtitle="UNISPARK INNOVATION PRIVATE LIMITED is a startup recognized by the Department for Promotion of Industry and Internal Trade (DPIIT), Government of India."
+              badge={badge}
+              title={title}
+              subtitle={desc1}
               center={false}
             />
 
             <p className="text-sm text-slate-300 leading-relaxed">
-              Founded in 2020 and headquartered in New Delhi with strategic operations in Dubai, UniSpark Innovation delivers comprehensive physical security systems, CCTV video intelligence, access governance, and managed IT services to commercial enterprises, infrastructure projects, and government installations.
+              {desc2}
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">

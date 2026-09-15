@@ -3,6 +3,7 @@ import PageHero from '../../components/common/PageHero';
 import SectionHeader from '../../components/common/SectionHeader';
 import TechnologyPartners from './TechnologyPartners';
 import CTASection from '../../components/common/CTASection';
+import images from '../../assets/images';
 
 export const Technology = () => {
   return (
@@ -12,7 +13,7 @@ export const Technology = () => {
         title="Hardware & Software Technology Standards"
         description="Our systems integrate leading global hardware OEMs, AI video analytics platforms, and certified Civil Defense security controllers."
         breadcrumbs={[{ label: 'Technology' }]}
-        image="/src/assets/images/advanced.jpg"
+        image={images.advanced}
       />
 
       <section className="py-20 bg-[#f1f9ff]">

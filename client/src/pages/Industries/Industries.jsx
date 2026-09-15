@@ -3,6 +3,7 @@ import PageHero from '../../components/common/PageHero';
 import IndustryCard from '../../components/cards/IndustryCard';
 import CTASection from '../../components/common/CTASection';
 import { INDUSTRIES } from '../../utils/constants';
+import images from '../../assets/images';
 
 export const Industries = () => {
   return (
@@ -12,7 +13,7 @@ export const Industries = () => {
         title="Industry Solutions & Sector Implementations"
         description="Discover tailored security, access control, and IT infrastructure solutions engineered for specific domain challenges."
         breadcrumbs={[{ label: 'Industries' }]}
-        image="/src/assets/images/industries-bg.jpg"
+        image={images.industriesBg}
       />
 
       <section className="py-20 bg-[#f1f9ff]">

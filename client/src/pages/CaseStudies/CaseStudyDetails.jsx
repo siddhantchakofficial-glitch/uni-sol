@@ -6,6 +6,7 @@ import Card from '../../components/ui/Card';
 import CTASection from '../../components/common/CTASection';
 import { caseStudyService } from '../../services/caseStudyService';
 import { FaCheckCircle } from 'react-icons/fa';
+import images from '../../assets/images';
 
 export const CaseStudyDetails = () => {
   const { slug } = useParams();
@@ -27,7 +28,7 @@ export const CaseStudyDetails = () => {
           { label: 'Case Studies', path: '/case-studies' },
           { label: cs.title },
         ]}
-        image={cs.image || '/src/assets/images/sol1.jpg'}
+        image={cs.image || images.sol1}
       />
 
       <section className="py-20 bg-[#f1f9ff] border-b border-slate-800/60">

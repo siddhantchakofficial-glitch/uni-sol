@@ -69,7 +69,7 @@ router.get('/', async (req, res) => {
 
 router.put('/', authorizeRole('SUPER_ADMIN', 'ADMIN'), async (req, res) => {
   try {
-    const { general, branding, social, integrations } = req.body;
+    const { general, branding, social, integrations, seo } = req.body;
 
     if (req.app.locals.dbConnected) {
       let settings = await SiteSettings.findOne();
@@ -80,6 +80,13 @@ router.put('/', authorizeRole('SUPER_ADMIN', 'ADMIN'), async (req, res) => {
       if (branding) settings.branding = { ...settings.branding, ...branding };
       if (social) settings.social = { ...settings.social, ...social };
       if (integrations) settings.integrations = { ...settings.integrations, ...integrations };
+      if (seo) settings.seo = { ...settings.seo, ...seo };
+
+      settings.markModified('general');
+      settings.markModified('branding');
+      settings.markModified('social');
+      settings.markModified('integrations');
+      settings.markModified('seo');
 
       await settings.save();
       await logActivity(req, 'SETTINGS_UPDATE', 'Updated global site settings.');
@@ -90,6 +97,7 @@ router.put('/', authorizeRole('SUPER_ADMIN', 'ADMIN'), async (req, res) => {
     if (branding) mockSettings.branding = { ...mockSettings.branding, ...branding };
     if (social) mockSettings.social = { ...mockSettings.social, ...social };
     if (integrations) mockSettings.integrations = { ...mockSettings.integrations, ...integrations };
+    if (seo) mockSettings.seo = { ...mockSettings.seo, ...seo };
 
     await logActivity(req, 'SETTINGS_UPDATE', 'Updated global site settings.');
     res.json({ success: true, settings: mockSettings, message: 'Settings saved successfully.' });

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Card from '../ui/Card';
 import Badge from '../ui/Badge';
 import { FaArrowRight } from 'react-icons/fa';
+import images from '../../assets/images';
 
 export const CaseStudyCard = ({ caseStudy }) => {
   return (
@@ -10,7 +11,7 @@ export const CaseStudyCard = ({ caseStudy }) => {
       <div>
         <div className="relative h-48 overflow-hidden">
           <img
-            src={caseStudy.image || '/src/assets/images/sol1.jpg'}
+            src={caseStudy.image || images.sol1}
             alt={caseStudy.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />

@@ -3,6 +3,7 @@ import PageHero from '../../components/common/PageHero';
 import CapabilityCard from '../../components/cards/CapabilityCard';
 import CTASection from '../../components/common/CTASection';
 import { CAPABILITIES } from '../../utils/constants';
+import images from '../../assets/images';
 
 export const Capabilities = () => {
   return (
@@ -12,7 +13,7 @@ export const Capabilities = () => {
         title="Comprehensive Security & Technology Solutions"
         description="Explore our specialized services spanning AI video surveillance, biometric access control, fire safety, and unified PSIM command center integration."
         breadcrumbs={[{ label: 'Capabilities' }]}
-        image="/src/assets/images/sol-bg.jpg"
+        image={images.solBg}
       />
 
       <section className="py-20 bg-[#f1f9ff]">

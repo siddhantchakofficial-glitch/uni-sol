@@ -1,6 +1,7 @@
 import React from 'react';
 import Badge from '../ui/Badge';
 import Breadcrumb from './Breadcrumb';
+import images from '../../assets/images';
 
 export const PageHero = ({
   badge,
@@ -13,7 +14,7 @@ export const PageHero = ({
     <section className="relative pt-32 pb-20 overflow-hidden bg-[#f1f9ff] border-b border-slate-800/60">
       {/* Full-width banner image, consistent with the Home hero treatment. */}
       <img
-        src={image || '/src/assets/images/hero.jpg'}
+        src={image || images.hero}
         alt=""
         aria-hidden="true"
         className="absolute inset-0 w-full h-full object-cover"

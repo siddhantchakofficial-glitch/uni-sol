@@ -4,14 +4,15 @@ import {
   FaSave, FaCheckCircle, FaSpinner, FaGlobe, FaShareAlt,
   FaSearch, FaImage, FaFacebookF, FaInstagram, FaTwitter, FaLinkedinIn, FaYoutube
 } from 'react-icons/fa';
+import images from '../../../assets/images';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 const DEFAULT_GLOBAL_DATA = {
   general: {
     siteName: 'UniSpark Innovation',
-    headerLogo: '/src/assets/images/unispark-logo.png',
-    footerLogo: '/src/assets/images/unispark-logo.png',
+    headerLogo: images.unisparkLogo,
+    footerLogo: images.unisparkLogo,
     favicon: '/favicon.ico',
     copyrightText: '© 2026 UniSpark Innovation Pvt. Ltd. All rights reserved.',
   },

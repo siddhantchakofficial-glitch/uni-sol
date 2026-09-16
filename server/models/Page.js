@@ -74,6 +74,11 @@ const pageSchema = new mongoose.Schema(
     publishedAt: {
       type: Date,
     },
+    // Multilingual translations map: { [langCode]: { content, seo, updatedAt } }
+    translations: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
   },
   { timestamps: true }
 );

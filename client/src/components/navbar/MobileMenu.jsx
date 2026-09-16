@@ -4,15 +4,43 @@ import { FaTimes, FaChevronDown, FaEnvelope, FaShieldAlt } from 'react-icons/fa'
 import { NAV_LINKS } from '../../utils/constants';
 import { useSiteContext } from '../../context/SiteContext';
 import { useAuth } from '../../context/AuthContext';
+import { LanguageSelector } from '../common/LanguageSelector';
+import { resolveMediaUrl } from '../../utils/mediaResolver';
 import Button from '../ui/Button';
 import logoImg from '../../assets/images/unispark-logo.png';
 
 export const MobileMenu = () => {
-  const { mobileMenuOpen, closeMobileMenu, setConsultationModalOpen } = useSiteContext();
+  const { mobileMenuOpen, closeMobileMenu, setConsultationModalOpen, menus, headerContent, siteSettings } = useSiteContext();
   const { user, isAuthenticated, serverOnline } = useAuth();
   const [openSubIndex, setOpenSubIndex] = useState(null);
 
   if (!mobileMenuOpen) return null;
+
+  // CMS-driven nav (same source as DesktopNav) with NAV_LINKS fallback.
+  const cmsItems = (Array.isArray(menus?.header) && menus.header.length > 0
+    ? menus.header
+        .filter((m) => m && m.label && m.visible !== false && m.label.trim().toLowerCase() !== 'contact' && m.url !== '/contact')
+        .map((m) => {
+          const fallbackDropdown = NAV_LINKS.find(
+            (n) => n.name?.toLowerCase() === m.label?.toLowerCase() || n.path === m.url
+          )?.dropdown;
+          return {
+            name: m.label,
+            path: m.url || '#',
+            dropdown: Array.isArray(m.children) && m.children.length > 0
+              ? m.children.map((c) => ({ name: c.label, path: c.url, desc: c.desc }))
+              : fallbackDropdown,
+          };
+        })
+    : NAV_LINKS
+  ).filter((item) => item && item.name?.trim().toLowerCase() !== 'contact' && item.path !== '/contact');
+
+  const hc = headerContent || {};
+  const gen = siteSettings?.general || {};
+  const mobileLogoSrc = resolveMediaUrl(hc.logoUrl || gen.headerLogo || logoImg, logoImg);
+  const navCtaText = hc.navCtaText || gen.navCtaText || 'CONTACT';
+  const navCtaLink = hc.navCtaLink || gen.navCtaLink || '/contact';
+  const topbarEmail = hc.topbarEmail || gen.topbarEmail || 'info@unisparkinnovation.com';
 
   return (
     <div className="fixed inset-0 z-50 bg-white/98 backdrop-blur-xl lg:hidden flex flex-col justify-between p-6 animate-fade-in overflow-y-auto">
@@ -21,8 +49,8 @@ export const MobileMenu = () => {
         <div className="flex items-center justify-between border-b border-gray-100 pb-5 mb-6">
           <Link to="/" onClick={closeMobileMenu} className="inline-block" aria-label="UniSpark Innovation home">
             <img
-              src={logoImg}
-              alt="UniSpark Innovation"
+              src={mobileLogoSrc}
+              alt={gen.siteName || 'UniSpark Innovation'}
               className="h-10 w-auto"
             />
           </Link>
@@ -37,7 +65,7 @@ export const MobileMenu = () => {
 
         {/* Navigation Items */}
         <div className="space-y-1">
-          {NAV_LINKS.map((item, idx) => {
+          {cmsItems.map((item, idx) => {
             if (item.dropdown) {
               const isOpen = openSubIndex === idx;
               return (
@@ -86,12 +114,19 @@ export const MobileMenu = () => {
       {/* Footer Contact CTAs */}
       <div className="pt-6 space-y-3 border-t border-gray-100 mt-6">
         <Link
-          to="/contact"
+          to={navCtaLink}
           onClick={closeMobileMenu}
           className="btn-unispark-pill w-full text-center block"
         >
-          CONTACT
+          {navCtaText}
         </Link>
+
+        {/* Language Selector */}
+        <div className="flex items-center justify-between py-2.5 px-4 rounded-xl border border-gray-200 bg-gray-50/80">
+          <span className="text-xs font-semibold text-gray-600">Language</span>
+          <LanguageSelector compact={true} />
+        </div>
+
         <Button
           variant="secondary"
           size="md"
@@ -133,8 +168,8 @@ export const MobileMenu = () => {
           </span>
         </Link>
         <div className="flex items-center justify-center text-xs text-gray-500 pt-2">
-          <a href="mailto:info@unisparkinnovation.com" className="flex items-center gap-1.5 hover:text-[#0470aa]">
-            <FaEnvelope className="text-[#0470aa]" /> info@unisparkinnovation.com
+          <a href={`mailto:${topbarEmail}`} className="flex items-center gap-1.5 hover:text-[#0470aa]">
+            <FaEnvelope className="text-[#0470aa]" /> {topbarEmail}
           </a>
         </div>
       </div>

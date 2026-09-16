@@ -10,7 +10,10 @@ export const PageHero = ({
   description,
   breadcrumbs = [],
   image,
+  overlayOpacity = 65,
 }) => {
+  const opacityVal = typeof overlayOpacity === 'number' ? overlayOpacity / 100 : 0.65;
+
   return (
     <section className="relative pt-32 pb-20 overflow-hidden bg-[#f1f9ff] border-b border-slate-800/60">
       {/* Full-width banner image, consistent with the Home hero treatment. */}
@@ -20,7 +23,10 @@ export const PageHero = ({
         aria-hidden="true"
         className="absolute inset-0 w-full h-full object-cover"
       />
-      <div className="absolute inset-0 bg-slate-950/65" />
+      <div
+        className="absolute inset-0 bg-slate-950 transition-opacity duration-200"
+        style={{ opacity: opacityVal }}
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {breadcrumbs.length > 0 && <Breadcrumb items={breadcrumbs} className="mb-6" />}

@@ -34,7 +34,7 @@ export const CapabilityDetails = () => {
         image={images.sol1}
       />
 
-      <section className="py-20 bg-[#f1f9ff] border-b border-slate-800/60">
+      <section className="py-20 bg-[#f1f9ff] border-b border-sky-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
           {/* Overview */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -44,22 +44,22 @@ export const CapabilityDetails = () => {
                 title={`Enterprise Architecture for ${capability.title}`}
                 center={false}
               />
-              <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+              <p className="text-sm sm:text-base text-[#475467] leading-relaxed">
                 {capability.desc} Our solutions are custom-engineered for maximum resilience, seamless multi-site connectivity, and 99.9% uptime compliance.
               </p>
 
               <div className="pt-4 space-y-3">
-                <h4 className="text-sm font-bold text-slate-100 uppercase tracking-wider">
+                <h4 className="text-sm font-bold text-[#000000] uppercase tracking-wider">
                   Key Deliverables & Technical Features
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {capability.features?.map((feat, idx) => (
                     <div
                       key={idx}
-                      className="bg-[#f1f9ff]/60 border border-slate-800 p-3 rounded-lg flex items-center gap-2.5"
+                      className="bg-white border border-[#e5e7eb] p-3 rounded-lg flex items-center gap-2.5"
                     >
-                      <FaCheckCircle className="w-4 h-4 text-blue-400 shrink-0" />
-                      <span className="text-xs font-semibold text-slate-200">{feat}</span>
+                      <FaCheckCircle className="w-4 h-4 text-[#0470aa] shrink-0" />
+                      <span className="text-xs font-semibold text-[#262626]">{feat}</span>
                     </div>
                   ))}
                 </div>
@@ -67,9 +67,9 @@ export const CapabilityDetails = () => {
             </div>
 
             <div className="lg:col-span-5">
-              <Card className="p-8 space-y-6 bg-[#f1f9ff]/80 border-blue-500/30">
-                <h3 className="text-xl font-bold text-white">Need a Customized Solution?</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
+              <Card className="p-8 space-y-6 bg-white border-[#0470aa]/30">
+                <h3 className="text-xl font-bold text-[#000000]">Need a Customized Solution?</h3>
+                <p className="text-xs text-[#475467] leading-relaxed">
                   Our senior solution architects provide complete site evaluation, BOQ generation, and CAD coverage design.
                 </p>
                 <Button

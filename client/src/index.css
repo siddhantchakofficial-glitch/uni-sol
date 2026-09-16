@@ -187,3 +187,89 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
+/* ─── Static page-wide backdrop (MainLayout) ──────────────────────────────
+   The fixed dimmed-image backdrop lives behind everything. Section bands
+   opt into slight transparency so the backdrop shows through subtly while
+   text contrast stays high. Scoped to .site-shell so the admin layout
+   (which has its own solid theme) is unaffected. */
+.site-shell section.bg-\[\#f1f9ff\] {
+  background-color: rgba(241, 249, 255, 0.82);
+}
+
+.site-shell section.bg-white {
+  background-color: rgba(255, 255, 255, 0.86);
+}
+
+.site-shell .bg-\[\#0a1e3f\] {
+  background-color: rgba(10, 30, 63, 0.94);
+}
+
+.site-shell footer.bg-\[\#f1f9ff\] {
+  background-color: rgba(241, 249, 255, 0.94);
+}
+
+/* ─── Google Website Translator ───────────────────────────────────────────
+   Hide the injected top banner frame and hover tooltips; the language
+   switch is driven by our own LanguageSelector button instead. */
+.goog-te-banner-frame.skiptranslate,
+.goog-te-banner-frame {
+  display: none !important;
+}
+
+body {
+  top: 0px !important;
+}
+
+#goog-gt-tt,
+.goog-tooltip,
+.goog-tooltip:hover {
+  display: none !important;
+}
+
+.goog-text-highlight {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Keep our fixed navbar overlaying translated content cleanly. */
+.skiptranslate > iframe {
+  visibility: hidden !important;
+}
+
+/* ─── CMS Logo Marquee (About page) ──────────────────────────────────
+   Infinite horizontal scroll built on the duplicated-track technique
+   (animation to -50%). Pauses on hover; disabled for reduced motion. */
+.logo-marquee-window {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+}
+
+.logo-marquee-track {
+  animation: logo-marquee-scroll 35s linear infinite;
+  will-change: transform;
+}
+
+.logo-marquee-window:hover .logo-marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes logo-marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    /* Moves exactly one full copy of the duplicated list → seamless loop */
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo-marquee-track {
+    animation: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+  }
+}

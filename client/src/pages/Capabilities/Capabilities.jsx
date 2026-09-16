@@ -1,5 +1,6 @@
 import React from 'react';
 import PageHero from '../../components/common/PageHero';
+import SectionHeader from '../../components/common/SectionHeader';
 import CapabilityCard from '../../components/cards/CapabilityCard';
 import CTASection from '../../components/common/CTASection';
 import { CAPABILITIES } from '../../utils/constants';
@@ -25,6 +26,14 @@ export const Capabilities = () => {
 
       <section className="py-20 bg-[#f1f9ff]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Intro header — mirrors solutions.php "Technical Authority. Trusted Delivery." */}
+          <SectionHeader
+            badge="Our Solutions"
+            title="Technical Authority."
+            highlight="Trusted Delivery."
+            className="mb-14"
+          />
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {items.map((cap) => (
               <CapabilityCard key={cap.id || cap.slug} capability={cap} />

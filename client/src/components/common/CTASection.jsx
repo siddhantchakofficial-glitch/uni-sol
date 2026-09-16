@@ -6,11 +6,22 @@ import { FaCalendarCheck, FaArrowRight } from 'react-icons/fa';
 export const CTASection = ({
   title = "Ready to Transform Your Enterprise Security & Infrastructure?",
   subtitle = "Schedule a confidential technical consultation with our senior solutions architects today.",
+  backgroundImage,
 }) => {
   const { setConsultationModalOpen } = useSiteContext();
 
   return (
     <section className="py-20 relative overflow-hidden bg-[#f1f9ff]">
+      {/* Optional CMS background image — renders only when configured; keeps
+          the existing gradient/graphic treatment otherwise untouched. */}
+      {backgroundImage && (
+        <img
+          src={backgroundImage}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      )}
       {/* Background Graphic Accent */}
       <div className="absolute inset-0 bg-gradient-to-r from-blue-900/30 via-slate-950 to-cyan-950/30 opacity-70" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">

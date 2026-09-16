@@ -1,8 +1,30 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useSiteContext } from '../../context/SiteContext';
 
+/*
+ * Footer link columns — CMS-driven via the existing menus API
+ * (menus.footer `children` = columns, or dedicated groups). Falls back to
+ * the built-in sections below when no CMS data exists.
+ */
 export const FooterLinks = () => {
-  const sections = [
+  const { menus } = useSiteContext();
+
+  const cmsSections = (() => {
+    const items = Array.isArray(menus?.footer) ? menus.footer : [];
+    const columns = items.filter((m) => m && m.label && m.visible !== false);
+    // Only real column structures (items WITH children) drive the footer
+    // columns. Flat menus (e.g. the seeded legal links) are rendered in the
+    // bottom bar already and must not replace the existing columns.
+    const hasColumns = columns.some((m) => Array.isArray(m.children) && m.children.length > 0);
+    if (!hasColumns) return null;
+    return columns.map((m) => ({
+      title: m.label,
+      links: (m.children || []).filter((c) => c && c.visible !== false).map((c) => ({ label: c.label, path: c.url })),
+    }));
+  })();
+
+  const sections = cmsSections || [
     {
       title: 'Company',
       links: [
@@ -27,10 +49,12 @@ export const FooterLinks = () => {
     {
       title: 'International',
       links: [
-        { label: 'Technology & Security', path: '/international/technology-security' },
-        { label: 'Workforce Solutions', path: '/international/workforce' },
-        { label: 'HR Solutions & HRMS', path: '/international/hrms' },
+        { label: 'Enterprise Operations', path: '/international' },
+        { label: 'Technology & Security Operations', path: '/international/technology-security' },
+        { label: 'Workforce & Business Operations', path: '/international/workforce' },
+        { label: 'HRMS & Workforce Systems', path: '/international/hrms' },
         { label: 'Payroll & Compliance', path: '/international/payroll-compliance' },
+        { label: 'Security Systems & Infrastructure', path: '/international/security-infrastructure' },
       ],
     },
   ];

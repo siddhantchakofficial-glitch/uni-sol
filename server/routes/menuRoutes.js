@@ -17,7 +17,6 @@ let mockMenus = [
       { id: 'm3', label: 'Capabilities', url: '/capabilities' },
       { id: 'm4', label: 'Industries', url: '/industries' },
       { id: 'm5', label: 'International', url: '/international' },
-      { id: 'm6', label: 'Contact', url: '/contact' },
     ],
   },
   {

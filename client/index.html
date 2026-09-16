@@ -9,10 +9,39 @@
     <meta name="theme-color" content="#f1f9ff" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,600&family=Space+Grotesk:wght@400;500;600;700&family=Wix+Madefor+Display:wght@400;500;600;700;800&family=Wix+Madefor+Text:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,600&family=Space+Grotesk:wght@400;500;600;700&family=Wix+Madefor+Display:wght@400;500;600;700;800&family=Wix+Madefor+Text:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
   </head>
   <body class="bg-white text-[#262626] antialiased selection:bg-[#0470aa] selection:text-white">
     <div id="root"></div>
+
+    <!-- Google Website Translator (Method 1): hidden anchor element -->
+    <div id="google_translate_element" style="display: none;"></div>
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        new window.google.translate.TranslateElement({
+          pageLanguage: 'en',
+          // Restrict to the 32 languages UniSpark supports (see constants/languages.js).
+          includedLanguages: 'en,es,fr,de,it,pt,ru,zh,ja,ko,ar,hi,bn,nl,tr,pl,sv,id,vi,th,el,cs,da,fi,he,hu,no,ro,ms,uk,ur,ta',
+          autoDisplay: false
+        }, 'google_translate_element');
+      }
+    </script>
+    <script type="text/javascript">
+      // Clear any persisted googtrans cookie BEFORE Google's engine initializes.
+      // If the cookie exists at init, element.js enters a "pre-restored" state
+      // that never actually translates React-rendered content and ignores
+      // later .goog-te-combo change events. A fresh engine + explicit combo
+      // dispatch (see utils/googleTranslate.js) is the reliable path.
+      (function () {
+        var expired = '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        document.cookie = 'googtrans' + expired;
+        if (window.location.hostname) {
+          document.cookie = 'googtrans' + expired + '; domain=.' + window.location.hostname;
+        }
+      })();
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

@@ -1,6 +1,22 @@
 import { ENV } from '../config/env';
 
+const THANK_YOU_MESSAGE = 'Thank you! Your request has been received. Our expert team will contact you shortly.';
+
 export const leadService = {
+  /** Fetch a server-issued captcha challenge (SVG + signed token parts). */
+  getCaptcha: async () => {
+    try {
+      const res = await fetch(`${ENV.API_BASE_URL}/submissions/captcha`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.success && json.captcha) return json.captcha;
+      }
+    } catch {
+      // fall through
+    }
+    return null;
+  },
+
   submitContactForm: async (data) => {
     try {
       const res = await fetch(`${ENV.API_BASE_URL}/submissions/submit/contact-form`, {
@@ -11,21 +27,29 @@ export const leadService = {
         body: JSON.stringify(data),
       });
 
-      if (res.ok) {
-        const json = await res.json();
+      const json = await res.json().catch(() => null);
+
+      // Surface real failures (captcha rejected, validation, server error) so
+      // the form can show the error and let the user retry.
+      if (!res.ok || json?.success === false) {
         return {
-          success: true,
-          message: json.message || 'Thank you! Your request has been received. Our expert team will contact you shortly.',
+          success: false,
+          message: json?.message || 'Submission rejected. Please check the form and try again.',
         };
       }
-    } catch {
-      // Fallback
-    }
 
-    return {
-      success: true,
-      message: 'Thank you! Your request has been received. Our expert team will contact you shortly.',
-    };
+      return {
+        success: true,
+        message: json?.message || THANK_YOU_MESSAGE,
+      };
+    } catch {
+      // Network/server unreachable — report failure instead of faking success
+      // so the user knows their enquiry was NOT delivered.
+      return {
+        success: false,
+        message: 'Could not reach the server. Please try again in a moment.',
+      };
+    }
   },
 
   subscribeNewsletter: async (email) => {

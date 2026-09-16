@@ -18,6 +18,7 @@ import submissionRoutes from './routes/submissionRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import activityRoutes from './routes/activityRoutes.js';
+import translationRoutes from './routes/translationRoutes.js';
 
 dotenv.config();
 
@@ -91,6 +92,7 @@ app.use('/api/submissions', submissionRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/activity', activityRoutes);
+app.use('/api/translations', translationRoutes);
 
 // Root API status endpoint
 app.get('/', (req, res) => {

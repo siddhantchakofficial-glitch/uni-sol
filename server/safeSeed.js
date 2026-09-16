@@ -15,6 +15,38 @@ try {
 
 const DEFAULT_PAGES = [
   {
+    title: 'Header & Navigation',
+    slug: 'header',
+    content: {
+      showTopbar: true,
+      topbarEmail: 'info@unisparkinnovation.com',
+      logoUrl: '',
+      navCtaText: 'CONTACT',
+      navCtaLink: '/contact',
+      showCta: true,
+      showLanguage: true,
+      social: {},
+    },
+  },
+  {
+    title: 'Footer',
+    slug: 'footer',
+    content: {
+      logoUrl: '',
+      description: '',
+      copyrightText: '',
+      showOffices: true,
+      officeIndia: null,
+      officeUAE: null,
+      legalLinks: [
+        { id: 'lg_1', label: 'Privacy Policy', path: '/privacy-policy', visible: true },
+        { id: 'lg_2', label: 'Terms of Service', path: '/terms', visible: true },
+        { id: 'lg_3', label: 'Cookie Policy', path: '/cookie-policy', visible: true },
+        { id: 'lg_4', label: 'Disclaimer', path: '/disclaimer', visible: true },
+      ],
+    },
+  },
+  {
     title: 'Home Page',
     slug: 'home',
     content: {
@@ -136,11 +168,15 @@ const DEFAULT_PAGES = [
         badge: 'ABOUT UNISPARK SECURITY & INNOVATION',
         title: 'Pioneering Mission-Critical Security & Global Enterprise Solutions',
         subtitle: 'Delivering end-to-end electronic security, integrated command systems, and international workforce deployment across Asia & Middle East.',
+        description: 'Delivering end-to-end electronic security, integrated command systems, and international workforce deployment across Asia & Middle East.',
         imageUrl: '',
+        overlayOpacity: 65,
+        breadcrumbText: 'About Us',
       },
       overview: {
-        badge: 'Our Journey',
+        badge: 'OUR JOURNEY',
         heading: 'The Story of UniSpark Innovation',
+        subtitle: 'From a visionary engineering startup in 2020 to a recognized regional technology power.',
         paragraph1: 'UniSpark Innovation Private Limited was founded in New Delhi with a clear mission: to elevate physical security infrastructure and enterprise IT systems to modern digital standards. Recognizing that traditional analog installations left major gaps in threat detection and system reliability, our leadership set out to engineer intelligent, connected systems.',
         paragraph2: 'Through rigorous engineering quality, DPIIT recognition by the Government of India, and rapid expansion into the United Arab Emirates market, UniSpark has grown into a trusted partner for commercial towers, industrial facilities, and public infrastructure projects across the region.',
       },
@@ -151,8 +187,22 @@ const DEFAULT_PAGES = [
         { id: 'gc_4', number: '100%', label: 'Compliance & Safety Record' },
       ],
       missionVision: {
+        missionIcon: 'FaBullseye',
+        missionTitle: 'Our Mission',
+        missionDesc: 'To empower enterprise organizations with resilient, AI-powered security infrastructure, unified PSIM control platforms, and uncompromised SLA maintenance services that safeguard lives and critical operations.',
         mission: 'To empower enterprise organizations with resilient, AI-powered security infrastructure, unified PSIM control platforms, and uncompromised SLA maintenance services that safeguard lives and critical operations.',
+        visionIcon: 'FaEye',
+        visionTitle: 'Our Vision',
+        visionDesc: 'To become the premier technology systems integrator across Asia & the Middle East, recognized for technological excellence, regulatory compliance, and customer-first innovation.',
         vision: 'To become the premier technology systems integrator across Asia & the Middle East, recognized for technological excellence, regulatory compliance, and customer-first innovation.',
+      },
+      visibility: {
+        hero: true,
+        journey: true,
+        statistics: true,
+        missionVision: true,
+        leadership: true,
+        cta: true,
       },
       leadership: [
         {
@@ -162,6 +212,26 @@ const DEFAULT_PAGES = [
           bio: 'Over 24 years of executive technology leadership across enterprise cloud, cybersecurity, physical security, and infrastructure transformation.',
           image: '',
         },
+      ],
+      // CMS logo marquee — scrolls under the "Trusted by Leading Enterprise
+      // Brands" heading. Logos are the project's own asset files and remain
+      // fully editable (replace/upload/remove/reorder/enable) in the CMS.
+      logoMarquee: {
+        enabled: true,
+        speedSeconds: 35,
+        heading: 'Trusted by Leading Enterprise Brands',
+        logos: [
+          { id: 'lm_1', name: 'Hanwha', imageUrl: '/assets/images/hanwha.jpg', enabled: true },
+          { id: 'lm_2', name: 'Siemens', imageUrl: '/assets/images/siemens.jpg', enabled: true },
+          { id: 'lm_3', name: 'Gallagher', imageUrl: '/assets/images/gallagher.jpg', enabled: true },
+          { id: 'lm_4', name: 'Hochiki', imageUrl: '/assets/images/hochiki.jpg', enabled: true },
+          { id: 'lm_5', name: 'LenelS2', imageUrl: '/assets/images/lenel.jpg', enabled: true },
+          { id: 'lm_6', name: '2N', imageUrl: '/assets/images/2n.jpg', enabled: true },
+          { id: 'lm_7', name: 'CP Plus', imageUrl: '/assets/images/cpplus.jpg', enabled: true },
+          { id: 'lm_8', name: 'Uniview', imageUrl: '/assets/images/uniview.jpg', enabled: true },
+        ],
+      },
+      leadership: [
         {
           id: 'lead_2',
           name: 'Krishna Baruta',
@@ -267,7 +337,75 @@ const DEFAULT_PAGES = [
         heading: 'Engineered for Unique Operational & Regulatory Demands',
         paragraph1: 'Every industry faces distinct threat profiles and compliance frameworks. UniSpark designs bespoke physical security, automated visitor tracking, and life-safety architectures tailored specifically to your sector.',
         paragraph2: 'From tier-4 data centers with stringent zero-trust mantrap protocols to sprawling manufacturing facilities needing thermal perimeter surveillance, our solutions guarantee uptime and safety.',
+        imageUrl: '',
+        showImage: true,
       },
+      approach: {
+        badge: 'OUR APPROACH',
+        title: 'Engineering Discipline Behind Every Engagement',
+        principles: [
+          'Architecture-first system design aligned to operational needs',
+          'Security and compliance by design, not as an afterthought',
+          'Execution-ready deployments that scale across sites and teams',
+        ],
+        imageUrl: '',
+        showImage: true,
+      },
+      capabilityFramework: {
+        badge: 'CAPABILITY FRAMEWORK',
+        title: 'How Our Capabilities Empower Every Industry',
+        subtitle: 'One integrated delivery framework applied with sector-specific context.',
+        items: [
+          { id: 'cf_1', title: 'Video Intelligence & Surveillance', desc: 'AI-powered CCTV, analytics, and remote monitoring for complete site visibility.' },
+          { id: 'cf_2', title: 'Access Control & Identity', desc: 'Biometric, card, and mobile access governance for every critical entry point.' },
+          { id: 'cf_3', title: 'Intrusion & Perimeter Defense', desc: 'Perimeter detection, fence sensors, and rapid intrusion alerting.' },
+          { id: 'cf_4', title: 'Fire & Life Safety', desc: 'Addressable fire detection, suppression interface, and evacuation systems.' },
+          { id: 'cf_5', title: 'System Integration & PSIM', desc: 'Unified command platforms correlating multi-system events in real time.' },
+          { id: 'cf_6', title: 'Managed IT & Maintenance', desc: 'SLA-governed maintenance contracts and managed IT operations for uptime.' },
+        ],
+      },
+      industriesServed: {
+        badge: 'INDUSTRIES WE SERVE',
+        title: 'Sector Coverage Across Commercial & Industrial Environments',
+        items: [
+          { id: 'is_1', name: 'Data Centers & Hyperscale Hubs', slug: 'data-centers' },
+          { id: 'is_2', name: 'Banking & Financial Institutions', slug: 'banking-finance' },
+          { id: 'is_3', name: 'Manufacturing & Heavy Industry', slug: 'manufacturing' },
+          { id: 'is_4', name: 'Healthcare & Pharmaceutical Campuses', slug: 'healthcare' },
+        ],
+      },
+      whyChooseUs: {
+        badge: 'WHY UNISPARK',
+        title: 'Why Organizations Choose UniSpark Across Industries',
+        items: [
+          { id: 'why_1', title: 'Architecture-Driven Engineering', desc: 'Every engagement starts with system design — coverage plans, compliance mapping, and integration architecture before deployment.' },
+          { id: 'why_2', title: 'Regulatory Alignment', desc: 'Installations designed around UAE SIRA/SBD and Indian Civil Defence & BIS requirements, with documented compliance.' },
+          { id: 'why_3', title: 'SLA-Governed Uptime', desc: 'Annual and preventive maintenance contracts with 24/7 support, dedicated engineers, and guaranteed response times.' },
+          { id: 'why_4', title: 'Unified Multi-System Integration', desc: 'PSIM-led integration brings CCTV, access, intrusion, and intercom into a single operational view.' },
+          { id: 'why_5', title: 'Dual-Region Presence', desc: 'Delivery teams operating across India and the UAE for on-ground support in both regions.' },
+          { id: 'why_6', title: 'End-to-End Lifecycle', desc: 'From site survey and BOQ to installation, integration, and lifecycle maintenance — one accountable partner.' },
+        ],
+      },
+      faq: {
+        badge: 'INDUSTRY FAQ',
+        title: 'Frequently Asked Questions',
+        subtitle: 'Answers on sector coverage, compliance, integration, and support models.',
+        items: [
+          { question: 'Do you provide industry-specific system designs?', answer: 'Yes. Each engagement begins with a site-specific design — camera coverage, access zoning, and compliance mapping tailored to your sector’s operational and regulatory requirements.' },
+          { question: 'Which industries does UniSpark serve?', answer: 'We deliver security and infrastructure solutions across data centers, banking and financial institutions, manufacturing, healthcare, and other commercial and industrial environments across India and the UAE.' },
+          { question: 'Can you work with our existing security systems?', answer: 'Yes. We specialize in PSIM-based integration that unifies legacy analog/IP CCTV, access control, and intrusion systems into a single command interface.' },
+          { question: 'How do you handle sector-specific compliance?', answer: 'Designs are mapped to the applicable regional standards — such as SIRA/SBD in the UAE and Indian Civil Defence & BIS guidelines — with documentation provided at handover.' },
+          { question: 'Do you support multi-site rollouts?', answer: 'Yes. Our teams operate across India and the UAE, supporting phased multi-site deployments with centralized monitoring and SLA-governed maintenance.' },
+        ],
+      },
+      cta: {
+        imageUrl: '',
+        showImage: false,
+      },
+      // Per-slug image config for /industries/:slug dropdown pages.
+      // Every industry route (aviation, real-estate, oil-gas, hospitality,
+      // healthcare, retail, bfsi, manufacturing) resolves its images here.
+      industryDetails: {},
       industriesList: [
         {
           id: 'ind_1',
@@ -320,6 +458,33 @@ const DEFAULT_PAGES = [
         phoneIndia: '+91 11 4567 8900',
         phoneUAE: '+971 4 321 9876',
         whatsapp: '918860077276',
+      },
+      form: {
+        badge: 'Enquiry Form',
+        heading: 'Send Us a Message',
+        workingHours: 'Sunday – Thursday · 9:00 – 18:00',
+        locations: ['India', 'United Arab Emirates', 'Other International'],
+        enquiryTypes: [
+          'Request for Quotation (RFQ)',
+          'Technical Consultation',
+          'Maintenance / AMC Support',
+          'Partnership / Distribution',
+          'Careers',
+          'Other',
+        ],
+        services: [
+          'CCTV & AI Video Analytics',
+          'Biometric & Physical Access Control',
+          'Fire Alarm & Life Safety Systems',
+          'Perimeter Intrusion Detection',
+          'System Integration & Command Center (PSIM)',
+          'Annual Maintenance Contracts (AMC/PMC)',
+          'International Talent & IT Consulting',
+        ],
+      },
+      map: {
+        query: 'Business Bay, Dubai, UAE',
+        embedUrl: '',
       },
       offices: [
         {

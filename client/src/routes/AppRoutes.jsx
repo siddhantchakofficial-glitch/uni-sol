@@ -16,13 +16,20 @@ import IndustryDetails from '../pages/Industries/IndustryDetails';
 
 import International from '../pages/International/International';
 import TechnologySecurity from '../pages/International/TechnologySecurity';
+import CybersecurityRiskGovernance from '../pages/International/CybersecurityRiskGovernance';
+import ManagedITServices from '../pages/International/ManagedITServices';
+import ITITeSOperations from '../pages/International/ITITeSOperations';
+import GCCOperations from '../pages/International/GCCOperations';
 import Workforce from '../pages/International/Workforce';
-import SecurityInfrastructure from '../pages/International/SecurityInfrastructure';
-import HRSolutions from '../pages/International/HRSolutions';
 import HRAdvisory from '../pages/International/HRAdvisory';
 import PayrollCompliance from '../pages/International/PayrollCompliance';
 import HRMS from '../pages/International/HRMS';
 import WorkforceDeployment from '../pages/International/WorkforceDeployment';
+import SkilledWorkforce from '../pages/International/SkilledWorkforce';
+import HRSolutions from '../pages/International/HRSolutions';
+import SecurityInfrastructure from '../pages/International/SecurityInfrastructure';
+import SecurityInstallationMaintenance from '../pages/International/SecurityInstallationMaintenance';
+import SecurityEquipmentAccessControl from '../pages/International/SecurityEquipmentAccessControl';
 
 import Technology from '../pages/Technology/Technology';
 import TechnologyDetails from '../pages/Technology/TechnologyDetails';
@@ -72,16 +79,31 @@ export const AppRoutes = () => {
         <Route path="industries" element={<Industries />} />
         <Route path="industries/:slug" element={<IndustryDetails />} />
 
-        {/* International */}
+        {/* International Enterprise Operations / Advanced Enterprise Solutions */}
         <Route path="international" element={<International />} />
+        <Route path="advanced-enterprise-solutions" element={<International />} />
+
+        {/* Domain 1: Technology & Security Operations */}
         <Route path="international/technology-security" element={<TechnologySecurity />} />
+        <Route path="international/cybersecurity-risk-governance" element={<CybersecurityRiskGovernance />} />
+        <Route path="international/managed-it-services" element={<ManagedITServices />} />
+        <Route path="international/it-ites-operations" element={<ITITeSOperations />} />
+        <Route path="international/gcc-operations" element={<GCCOperations />} />
+
+        {/* Domain 2: Workforce & Business Operations */}
         <Route path="international/workforce" element={<Workforce />} />
-        <Route path="international/security-infrastructure" element={<SecurityInfrastructure />} />
-        <Route path="international/hr-solutions" element={<HRSolutions />} />
         <Route path="international/hr-advisory" element={<HRAdvisory />} />
         <Route path="international/payroll-compliance" element={<PayrollCompliance />} />
         <Route path="international/hrms" element={<HRMS />} />
         <Route path="international/workforce-deployment" element={<WorkforceDeployment />} />
+        <Route path="international/skilled-workforce" element={<SkilledWorkforce />} />
+        {/* Legacy alias — HR Solutions consolidated into Workforce & Business Operations */}
+        <Route path="international/hr-solutions" element={<HRSolutions />} />
+
+        {/* Domain 3: Security Systems & Infrastructure */}
+        <Route path="international/security-infrastructure" element={<SecurityInfrastructure />} />
+        <Route path="international/security-installation-maintenance" element={<SecurityInstallationMaintenance />} />
+        <Route path="international/security-equipment-access-control" element={<SecurityEquipmentAccessControl />} />
 
         {/* Contact */}
         <Route path="contact" element={<Contact />} />

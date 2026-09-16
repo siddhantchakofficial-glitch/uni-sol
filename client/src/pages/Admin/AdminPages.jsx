@@ -8,8 +8,11 @@ import HomepageEditor from './editors/HomepageEditor';
 import AboutPageEditor from './editors/AboutPageEditor';
 import SolutionsEditor from './editors/SolutionsEditor';
 import IndustriesEditor from './editors/IndustriesEditor';
+import InternationalEditor from './editors/InternationalEditor';
 import ContactPageEditor from './editors/ContactPageEditor';
 import FooterAndSEOEditor from './editors/FooterAndSEOEditor';
+
+import { useSearchParams } from 'react-router-dom';
 
 const CMS_PAGES = [
   {
@@ -21,6 +24,16 @@ const CMS_PAGES = [
     icon: FaHome,
     color: 'bg-sky-500',
     component: HomepageEditor,
+  },
+  {
+    id: 'header',
+    title: 'Header & Navigation CMS',
+    path: '/',
+    badge: 'Navigation Bar',
+    desc: 'Header logo, navigation menu links, contact strip, and sticky navigation bar settings.',
+    icon: FaGlobe,
+    color: 'bg-cyan-600',
+    component: FooterAndSEOEditor,
   },
   {
     id: 'about',
@@ -53,6 +66,16 @@ const CMS_PAGES = [
     component: IndustriesEditor,
   },
   {
+    id: 'international',
+    title: 'International Enterprise CMS',
+    path: '/international',
+    badge: 'Global Operations',
+    desc: 'Technology & Security, Workforce & Business Operations, Security Infrastructure — all 14+ sub-pages.',
+    icon: FaGlobe,
+    color: 'bg-sky-600',
+    component: InternationalEditor,
+  },
+  {
     id: 'contact',
     title: 'Contact & Offices CMS',
     path: '/contact',
@@ -75,9 +98,13 @@ const CMS_PAGES = [
 ];
 
 export const AdminPages = () => {
-  const [activePageId, setActivePageId] = useState('home');
+  const [searchParams] = useSearchParams();
+  const pageParam = searchParams.get('page');
+  const validPage = pageParam && CMS_PAGES.some((p) => p.id === pageParam) ? pageParam : null;
+  const [selectedPageId, setSelectedPageId] = useState('home');
   const [viewMode, setViewMode] = useState('editor'); // 'editor' | 'overview'
 
+  const activePageId = validPage || selectedPageId;
   const activePage = CMS_PAGES.find((p) => p.id === activePageId) || CMS_PAGES[0];
   const ActiveComponent = activePage.component;
 
@@ -114,7 +141,7 @@ export const AdminPages = () => {
               <button
                 key={page.id}
                 onClick={() => {
-                  setActivePageId(page.id);
+                  setSelectedPageId(page.id);
                   setViewMode('editor');
                 }}
                 className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between group ${
@@ -181,7 +208,7 @@ export const AdminPages = () => {
 
                   <button
                     onClick={() => {
-                      setActivePageId(page.id);
+                      setSelectedPageId(page.id);
                       setViewMode('editor');
                     }}
                     className="btn-unispark-pill text-xs py-1.5 px-4 inline-flex items-center gap-1.5"

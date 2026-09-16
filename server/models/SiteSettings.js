@@ -5,10 +5,35 @@ const siteSettingsSchema = new mongoose.Schema(
     general: {
       siteName: { type: String, default: 'UniSpark Innovation' },
       logo: { type: String, default: '/assets/logo.png' },
+      headerLogo: { type: String, default: '' },
+      footerLogo: { type: String, default: '' },
       favicon: { type: String, default: '/favicon.ico' },
       contactEmail: { type: String, default: 'info@unisparkinnovation.com' },
+      topbarEmail: { type: String, default: 'info@unisparkinnovation.com' },
       phone: { type: String, default: '+91 11 4567 8900' },
       address: { type: String, default: 'Connaught Place, New Delhi, India' },
+      navCtaText: { type: String, default: 'CONTACT' },
+      navCtaLink: { type: String, default: '/contact' },
+      copyrightText: { type: String, default: '© {year} UniSpark Innovation Pvt. Ltd. All rights reserved.' },
+      footerDescription: {
+        type: String,
+        default: 'UniSpark Innovation Private Limited is a DPIIT-recognized enterprise technology services company delivering CCTV video surveillance, access control, system integration, and global IT consulting across India and the UAE.',
+      },
+      newsletterTitle: { type: String, default: 'Subscribe to Insights' },
+      newsletterText: {
+        type: String,
+        default: 'Stay updated with modern security tech trends, AI video analytics, and enterprise IT best practices.',
+      },
+      officeIndia: {
+        label: { type: String, default: 'India Headquarters' },
+        address: { type: String, default: 'UniSpark Innovation Pvt. Ltd., Connaught Place, New Delhi, India' },
+        phone: { type: String, default: '+91 11 4567 8900' },
+      },
+      officeUAE: {
+        label: { type: String, default: 'UAE Regional Office' },
+        address: { type: String, default: 'UniSpark Innovation LLC, Business Bay, Dubai, UAE' },
+        phone: { type: String, default: '+971 4 321 9876' },
+      },
     },
     branding: {
       primaryColor: { type: String, default: '#0284c7' }, // Sky Blue

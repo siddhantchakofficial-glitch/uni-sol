@@ -33,6 +33,14 @@ export const SiteProvider = ({ children }) => {
   const [toast, setToast] = useState(null);
   const [siteSettings, setSiteSettings] = useState(DEFAULT_SETTINGS);
   const [menus, setMenus] = useState({ header: null, footer: null });
+  // Full CMS content for the `header` and `footer` page records (nav links,
+  // dropdowns, CTA, columns, visibility). Fetched from the same
+  // /api/pages/public/:slug pipeline every other page uses.
+  const [headerContent, setHeaderContent] = useState(null);
+  const [footerContent, setFooterContent] = useState(null);
+  // Live Preview override — when an admin editor registers draft data, the
+  // same public components render the DRAFT instead of published content.
+  const [previewOverrides, setPreviewOverrides] = useState({});
 
   const fetchSettings = useCallback(async () => {
     try {
@@ -77,10 +85,26 @@ export const SiteProvider = ({ children }) => {
     }
   }, []);
 
+  const fetchPageContent = useCallback(async (slug, setter) => {
+    try {
+      const res = await fetch(`${API_BASE}/pages/public/${slug}?_t=${Date.now()}`, {
+        cache: 'no-cache',
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.page?.content) setter(json.page.content);
+      }
+    } catch {
+      // Keep existing/default content on failure
+    }
+  }, []);
+
   const refreshAll = useCallback(() => {
     fetchSettings();
     fetchMenus();
-  }, [fetchSettings, fetchMenus]);
+    fetchPageContent('header', setHeaderContent);
+    fetchPageContent('footer', setFooterContent);
+  }, [fetchSettings, fetchMenus, fetchPageContent]);
 
   useEffect(() => {
     refreshAll();
@@ -95,9 +119,24 @@ export const SiteProvider = ({ children }) => {
     };
     window.addEventListener('storage', handleStorage);
 
+    // Cross-tab/same-tab instant refresh when a CMS editor saves or publishes
+    // (notifyCMSPublish broadcasts on this channel).
+    let channel;
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        channel = new BroadcastChannel('unisol_cms_channel');
+        channel.onmessage = (event) => {
+          if (event.data?.type === 'PUBLISH') refreshAll();
+        };
+      }
+    } catch {
+      // Fallback
+    }
+
     return () => {
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('storage', handleStorage);
+      if (channel) channel.close();
     };
   }, [refreshAll]);
 
@@ -111,6 +150,12 @@ export const SiteProvider = ({ children }) => {
   const toggleMobileMenu = () => setMobileMenuOpen((prev) => !prev);
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
+  // Live Preview: editors call these to render draft header/footer/footer
+  // settings through the same public components (no refresh, no duplicates).
+  const setPreviewOverride = useCallback((key, value) => {
+    setPreviewOverrides((prev) => ({ ...prev, [key]: value }));
+  }, []);
+
   return (
     <SiteContext.Provider
       value={{
@@ -123,9 +168,12 @@ export const SiteProvider = ({ children }) => {
         setSearchOpen,
         toast,
         showToast,
-        siteSettings,
-        menus,
+        siteSettings: previewOverrides.siteSettings || siteSettings,
+        menus: previewOverrides.menus || menus,
+        headerContent: previewOverrides.header || headerContent,
+        footerContent: previewOverrides.footer || footerContent,
         refreshSettings: refreshAll,
+        setPreviewOverride,
       }}
     >
       {children}

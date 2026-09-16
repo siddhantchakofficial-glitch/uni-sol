@@ -2,8 +2,12 @@ import React from 'react';
 import SectionHeader from '../../../components/common/SectionHeader';
 import { FaSearch, FaDraftingCompass, FaTools, FaHeadset, FaChartLine } from 'react-icons/fa';
 
-export const Lifecycle = () => {
-  const steps = [
+export const Lifecycle = ({ data }) => {
+  const badge = data?.badge || 'Project Lifecycle';
+  const title = data?.title || 'Our 5-Stage Turnkey Delivery Process';
+  const subtitle = data?.subtitle || 'A structured, SLA-driven engineering methodology that guarantees seamless execution from concept to lifecycle maintenance.';
+
+  const defaultSteps = [
     {
       num: '01',
       icon: FaSearch,
@@ -36,13 +40,23 @@ export const Lifecycle = () => {
     },
   ];
 
+  const icons = [FaSearch, FaDraftingCompass, FaTools, FaHeadset, FaChartLine];
+  const steps = (Array.isArray(data?.steps) && data.steps.length > 0)
+    ? data.steps.map((s, idx) => ({
+        num: s.num || String(idx + 1).padStart(2, '0'),
+        icon: icons[idx % icons.length],
+        title: s.title,
+        desc: s.desc || s.description,
+      }))
+    : defaultSteps;
+
   return (
     <section className="py-20 bg-[#f1f9ff]/40 border-b border-slate-800/60 relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
         <SectionHeader
-          badge="Project Lifecycle"
-          title="Our 5-Stage Turnkey Delivery Process"
-          subtitle="A structured, SLA-driven engineering methodology that guarantees seamless execution from concept to lifecycle maintenance."
+          badge={badge}
+          title={title}
+          subtitle={subtitle}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6">

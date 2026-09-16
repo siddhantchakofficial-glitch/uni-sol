@@ -4,6 +4,7 @@ import Badge from '../ui/Badge';
 export const SectionHeader = ({
   badge,
   title,
+  highlight,
   subtitle,
   center = true,
   className = '',
@@ -24,6 +25,12 @@ export const SectionHeader = ({
       {title && (
         <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#000000] tracking-tight leading-tight">
           {title}
+          {highlight && (
+            <>
+              {' '}
+              <span className="text-gradient-unispark">{highlight}</span>
+            </>
+          )}
         </h2>
       )}
 

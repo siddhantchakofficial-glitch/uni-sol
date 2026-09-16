@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ENV } from '../config/env';
+import { useLanguage } from '../context/LanguageContext';
 
 const API_BASE = ENV.API_BASE_URL || 'http://localhost:5000/api';
 
@@ -21,10 +22,21 @@ export const useCMS = (slug, defaultData = {}) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Get the currently active language from context (gracefully falls back when used outside provider)
+  let currentLanguage = 'en';
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const langCtx = useLanguage();
+    currentLanguage = langCtx.currentLanguage || 'en';
+  } catch {
+    // LanguageProvider not yet in tree (e.g. admin editor preview) — use English
+  }
+
   const fetchContent = useCallback(async (isBackground = false) => {
     if (!slug) return;
     try {
-      const res = await fetch(`${API_BASE}/pages/public/${slug}?_t=${Date.now()}`, {
+      const langParam = currentLanguage && currentLanguage !== 'en' ? `&lang=${currentLanguage}` : '';
+      const res = await fetch(`${API_BASE}/pages/public/${slug}?_t=${Date.now()}${langParam}`, {
         cache: 'no-cache',
         headers: {
           'Cache-Control': 'no-cache',
@@ -49,7 +61,7 @@ export const useCMS = (slug, defaultData = {}) => {
     } finally {
       setLoading(false);
     }
-  }, [slug]);
+  }, [slug, currentLanguage]);
 
   useEffect(() => {
     // Initial fetch

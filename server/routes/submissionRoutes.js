@@ -3,8 +3,32 @@ import FormSubmission from '../models/FormSubmission.js';
 import Form from '../models/Form.js';
 import { authenticateUser, authorizeRole } from '../middleware/authMiddleware.js';
 import { logActivity } from '../services/activityLogger.js';
+import { issueCaptcha, verifyCaptcha } from '../services/captchaService.js';
 
 const router = express.Router();
+
+/**
+ * Verify a Google reCAPTCHA v2 token with Google when the server secret is
+ * configured. Without a secret the check is skipped (dev mode) — bot
+ * protection then relies on the client-side honeypot field.
+ */
+const verifyCaptchaToken = async (token) => {
+  const secret = process.env.RECAPTCHA_SECRET_KEY;
+  if (!secret) return { ok: true, skipped: true };
+
+  try {
+    const res = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ secret, response: token || '' }),
+    });
+    const json = await res.json();
+    return { ok: !!json.success, skipped: false };
+  } catch {
+    // Google unreachable — fail open rather than blocking real enquiries.
+    return { ok: true, skipped: false, networkError: true };
+  }
+};
 
 let mockSubmissions = [
   {
@@ -35,6 +59,21 @@ let mockSubmissions = [
   },
 ];
 
+// PUBLIC: Issue a captcha challenge (server-rendered SVG; the answer never
+// leaves the server — the client only gets an HMAC signature to echo back).
+// Used whenever RECAPTCHA_SECRET_KEY is not configured, so bot protection
+// works out of the box without any external API keys.
+router.get('/captcha', (req, res) => {
+  res.json({ success: true, captcha: issueCaptcha() });
+});
+
+// PUBLIC: standalone verification endpoint (also exercised by the form's
+// inline refresh/validate UX before the full submission).
+router.post('/captcha/verify', (req, res) => {
+  const ok = verifyCaptcha(req.body || {});
+  res.json({ success: ok, message: ok ? 'Captcha verified.' : 'Captcha verification failed.' });
+});
+
 // PUBLIC: Submit form response
 router.post('/submit/:formId', async (req, res) => {
   try {
@@ -42,6 +81,34 @@ router.post('/submit/:formId', async (req, res) => {
     const formData = req.body;
     const ipAddress = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
     const userAgent = req.headers['user-agent'] || '';
+
+    // Bot protection: honeypot field must be empty; reCAPTCHA token verified
+    // server-side when RECAPTCHA_SECRET_KEY is configured, otherwise the
+    // self-contained SVG captcha is mandatory (fail closed — the form cannot
+    // be submitted without solving it).
+    if (formData.website_url) {
+      return res.status(400).json({ success: false, message: 'Submission rejected.' });
+    }
+
+    if (process.env.RECAPTCHA_SECRET_KEY) {
+      const captcha = await verifyCaptchaToken(formData.captchaToken);
+      if (!captcha.ok) {
+        return res.status(400).json({ success: false, message: 'Captcha verification failed. Please try again.' });
+      }
+    } else {
+      const captchaOk = verifyCaptcha({
+        id: formData.captchaId,
+        answer: formData.captchaAnswer,
+        expiry: formData.captchaExpiry,
+        signature: formData.captchaSignature,
+      });
+      if (!captchaOk) {
+        return res.status(400).json({
+          success: false,
+          message: 'Please complete the security check (captcha) correctly before submitting.',
+        });
+      }
+    }
 
     if (req.app.locals.dbConnected) {
       let formTitle = 'Contact Form';

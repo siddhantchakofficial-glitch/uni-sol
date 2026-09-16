@@ -1,9 +1,10 @@
 import React from 'react';
 import SectionHeader from '../../components/common/SectionHeader';
 
-export const Story = ({ overview = {}, glanceCards = [] }) => {
+export const Story = ({ overview = {}, glanceCards = [], showStatistics = true }) => {
   const badge = overview?.badge || 'Our Journey';
   const title = overview?.heading || 'The Story of UniSpark Innovation';
+  const subtitle = overview?.subtitle || 'From a visionary engineering startup in 2020 to a recognized regional technology power.';
   const p1 = overview?.paragraph1 || 'UniSpark Innovation Private Limited was founded in New Delhi with a clear mission: to elevate physical security infrastructure and enterprise IT systems to modern digital standards. Recognizing that traditional analog installations left major gaps in threat detection and system reliability, our leadership set out to engineer intelligent, connected systems.';
   const p2 = overview?.paragraph2 || 'Through rigorous engineering quality, DPIIT recognition by the Government of India, and rapid expansion into the United Arab Emirates market, UniSpark has grown into a trusted partner for commercial towers, industrial facilities, and public infrastructure projects across the region.';
 
@@ -13,7 +14,7 @@ export const Story = ({ overview = {}, glanceCards = [] }) => {
         <SectionHeader
           badge={badge}
           title={title}
-          subtitle="From a visionary engineering startup in 2020 to a recognized regional technology power."
+          subtitle={subtitle}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm text-slate-300 leading-relaxed">
@@ -21,7 +22,7 @@ export const Story = ({ overview = {}, glanceCards = [] }) => {
           <p>{p2}</p>
         </div>
 
-        {Array.isArray(glanceCards) && glanceCards.length > 0 && (
+        {showStatistics && Array.isArray(glanceCards) && glanceCards.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-slate-800/60">
             {glanceCards.map((card, idx) => (
               <div key={idx} className="bg-white/80 p-4 rounded-xl border border-sky-100 text-center shadow-xs">

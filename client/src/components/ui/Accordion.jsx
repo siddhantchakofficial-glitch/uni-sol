@@ -4,18 +4,18 @@ import { clsx } from 'clsx';
 
 export const AccordionItem = ({ title, children, isOpen, onToggle }) => {
   return (
-    <div className="border border-slate-800/80 rounded-xl bg-[#f1f9ff]/60 overflow-hidden transition-all duration-300">
+    <div className="border border-[#e5e7eb] rounded-xl bg-white overflow-hidden transition-all duration-300 hover:border-[#0470aa]/40">
       <button
         onClick={onToggle}
-        className="w-full px-6 py-4 flex items-center justify-between text-left font-semibold text-slate-100 hover:text-blue-400 transition-colors focus:outline-none cursor-pointer"
+        className="w-full px-6 py-4 flex items-center justify-between text-left font-semibold text-[#000000] hover:text-[#0470aa] transition-colors focus:outline-none cursor-pointer"
       >
         <span className="text-base sm:text-lg">{title}</span>
         <FaChevronDown
-          className={clsx('w-4 h-4 text-blue-500 transition-transform duration-300', isOpen && 'rotate-180')}
+          className={clsx('w-4 h-4 text-[#0470aa] transition-transform duration-300', isOpen && 'rotate-180')}
         />
       </button>
       {isOpen && (
-        <div className="px-6 pb-5 pt-1 text-slate-400 text-sm leading-relaxed border-t border-slate-800/40">
+        <div className="px-6 pb-5 pt-1 text-[#475467] text-sm leading-relaxed border-t border-[#e5e7eb]">
           {children}
         </div>
       )}

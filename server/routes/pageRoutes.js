@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import Page from '../models/Page.js';
 import { authenticateUser, authorizeRole } from '../middleware/authMiddleware.js';
 import { logActivity } from '../services/activityLogger.js';
+import { translatePageToAllLanguages } from '../services/translationService.js';
 
 const router = express.Router();
 
@@ -148,9 +149,11 @@ const findPageByIdOrSlug = async (identifier) => {
 };
 
 // PUBLIC ROUTE: Get published page by slug
+// Supports ?lang=<code> query param for multilingual delivery
 router.get('/public/:slug', async (req, res) => {
   try {
     const slug = req.params.slug.toLowerCase().trim();
+    const lang = req.query.lang && req.query.lang !== 'en' ? req.query.lang.toLowerCase().trim() : null;
 
     if (req.app.locals.dbConnected) {
       let page = await Page.findOne({ slug });
@@ -167,6 +170,23 @@ router.get('/public/:slug', async (req, res) => {
         ? page.publishedVersion.seo
         : (page.draftVersion?.seo || {});
 
+      // Serve translated content if lang requested and translation exists
+      let servedContent = activeContent;
+      let servedSeo = activeSeo;
+      let translationMeta = { lang: 'en', fallback: false };
+
+      if (lang) {
+        const translation = page.translations?.[lang];
+        if (translation?.content && Object.keys(translation.content).length > 0) {
+          servedContent = translation.content;
+          servedSeo = translation.seo || activeSeo;
+          translationMeta = { lang, fallback: false, translatedAt: translation.translatedAt };
+        } else {
+          // Fall back to English content gracefully
+          translationMeta = { lang, fallback: true, reason: 'Translation not yet available' };
+        }
+      }
+
       return res.json({
         success: true,
         page: {
@@ -174,10 +194,11 @@ router.get('/public/:slug', async (req, res) => {
           title: page.title,
           slug: page.slug,
           status: page.status,
-          content: activeContent,
+          content: servedContent,
           sections: activeSections,
-          seo: activeSeo,
+          seo: servedSeo,
           publishedAt: page.publishedAt,
+          translationMeta,
         },
       });
     }
@@ -205,6 +226,7 @@ router.get('/public/:slug', async (req, res) => {
         sections: activeSections,
         seo: page.publishedVersion?.seo || page.draftVersion?.seo || {},
         publishedAt: page.publishedAt,
+        translationMeta: { lang: 'en', fallback: false },
       },
     });
   } catch (error) {
@@ -343,10 +365,11 @@ router.get('/:id', async (req, res) => {
 });
 
 // PUT /api/pages/:id - Update page content (supports draft saving or immediate publishing)
+// Supports autoTranslate: true flag to auto-translate into all 32 languages on publish
 router.put('/:id', authorizeRole('SUPER_ADMIN', 'ADMIN', 'EDITOR', 'AUTHOR'), async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, slug, draftVersion, content, sections, seo, publish, status } = req.body;
+    const { title, slug, draftVersion, content, sections, seo, publish, status, autoTranslate } = req.body;
     const isPublishing = publish === true || status === 'published';
 
     if (req.app.locals.dbConnected) {
@@ -405,10 +428,31 @@ router.put('/:id', authorizeRole('SUPER_ADMIN', 'ADMIN', 'EDITOR', 'AUTHOR'), as
         ? `Published page: "${page.title}" (${page.slug})`
         : `Saved draft for page: "${page.title}" (${page.slug})`;
       await logActivity(req, 'PAGE_UPDATE', actionMsg);
+
+      // Auto-translate into all 32 languages in background if requested on publish
+      if (isPublishing && autoTranslate === true) {
+        const contentToTranslate = content || draftVersion?.content;
+        if (contentToTranslate && Object.keys(contentToTranslate).length > 0) {
+          // Run in background so the publish response is not delayed
+          setImmediate(async () => {
+            try {
+              const allTranslations = await translatePageToAllLanguages(contentToTranslate);
+              await Page.findByIdAndUpdate(page._id, {
+                $set: { translations: allTranslations },
+              });
+              console.log(`[Translation] Auto-translated "${page.title}" into ${Object.keys(allTranslations).length} languages.`);
+            } catch (translErr) {
+              console.error('[Translation] Auto-translate failed:', translErr.message);
+            }
+          });
+        }
+      }
+
       return res.json({
         success: true,
         page,
         message: isPublishing ? 'Changes published live.' : 'Draft saved successfully.',
+        autoTranslating: isPublishing && autoTranslate === true,
       });
     }
 

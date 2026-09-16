@@ -1,13 +1,14 @@
 import React from 'react';
 import Card from '../ui/Card';
 import images from '../../assets/images';
+import { resolveMediaUrl } from '../../utils/mediaResolver';
 
 export const TeamCard = ({ member }) => {
   return (
     <Card className="p-0 overflow-hidden group">
       <div className="h-64 overflow-hidden relative">
         <img
-          src={member.image || images.abtSec}
+          src={resolveMediaUrl(member.image || member.imageUrl, images.abtSec)}
           alt={member.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />

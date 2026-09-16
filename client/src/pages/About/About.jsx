@@ -24,8 +24,8 @@ export const About = () => {
         image={banner.imageUrl || images.abtSec}
       />
       <Story overview={overview} glanceCards={glanceCards} />
-      <MissionVision />
-      <Leadership />
+      <MissionVision data={content?.missionVision} />
+      <Leadership data={content?.leadership} />
       <CTASection />
     </div>
   );

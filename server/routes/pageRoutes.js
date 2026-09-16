@@ -157,6 +157,16 @@ router.get('/public/:slug', async (req, res) => {
       if (!page) {
         return res.status(404).json({ success: false, message: 'Page not found.' });
       }
+      const activeContent = (page.publishedVersion?.content && Object.keys(page.publishedVersion.content).length > 0)
+        ? page.publishedVersion.content
+        : (page.draftVersion?.content || {});
+      const activeSections = (page.publishedVersion?.sections?.length > 0)
+        ? page.publishedVersion.sections
+        : (page.draftVersion?.sections || []);
+      const activeSeo = page.publishedVersion?.seo?.title
+        ? page.publishedVersion.seo
+        : (page.draftVersion?.seo || {});
+
       return res.json({
         success: true,
         page: {
@@ -164,9 +174,9 @@ router.get('/public/:slug', async (req, res) => {
           title: page.title,
           slug: page.slug,
           status: page.status,
-          content: page.publishedVersion?.content || page.draftVersion?.content || {},
-          sections: page.publishedVersion?.sections || page.draftVersion?.sections || [],
-          seo: page.publishedVersion?.seo || page.draftVersion?.seo || {},
+          content: activeContent,
+          sections: activeSections,
+          seo: activeSeo,
           publishedAt: page.publishedAt,
         },
       });
@@ -177,6 +187,13 @@ router.get('/public/:slug', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Page not found.' });
     }
 
+    const activeContent = (page.publishedVersion?.content && Object.keys(page.publishedVersion.content).length > 0)
+      ? page.publishedVersion.content
+      : (page.draftVersion?.content || {});
+    const activeSections = (page.publishedVersion?.sections?.length > 0)
+      ? page.publishedVersion.sections
+      : (page.draftVersion?.sections || []);
+
     res.json({
       success: true,
       page: {
@@ -184,9 +201,9 @@ router.get('/public/:slug', async (req, res) => {
         title: page.title,
         slug: page.slug,
         status: page.status,
-        content: page.publishedVersion?.content || page.draftVersion?.content || {},
-        sections: page.publishedVersion?.sections || [],
-        seo: page.publishedVersion?.seo || {},
+        content: activeContent,
+        sections: activeSections,
+        seo: page.publishedVersion?.seo || page.draftVersion?.seo || {},
         publishedAt: page.publishedAt,
       },
     });
@@ -325,11 +342,12 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// PUT /api/pages/:id - Update page content & publish in real-time
+// PUT /api/pages/:id - Update page content (supports draft saving or immediate publishing)
 router.put('/:id', authorizeRole('SUPER_ADMIN', 'ADMIN', 'EDITOR', 'AUTHOR'), async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, slug, draftVersion, content, sections, seo } = req.body;
+    const { title, slug, draftVersion, content, sections, seo, publish, status } = req.body;
+    const isPublishing = publish === true || status === 'published';
 
     if (req.app.locals.dbConnected) {
       let page = await findPageByIdOrSlug(id);
@@ -337,7 +355,7 @@ router.put('/:id', authorizeRole('SUPER_ADMIN', 'ADMIN', 'EDITOR', 'AUTHOR'), as
         page = new Page({
           title: title || id,
           slug: (slug || id).toLowerCase().trim(),
-          status: 'published',
+          status: isPublishing ? 'published' : 'draft',
           author: req.user._id || req.user.id,
           authorName: req.user.username || 'Admin',
           draftVersion: {},
@@ -354,8 +372,10 @@ router.put('/:id', authorizeRole('SUPER_ADMIN', 'ADMIN', 'EDITOR', 'AUTHOR'), as
         page.draftVersion = page.draftVersion || {};
         page.draftVersion.content = incomingContent;
 
-        page.publishedVersion = page.publishedVersion || {};
-        page.publishedVersion.content = incomingContent;
+        if (isPublishing) {
+          page.publishedVersion = page.publishedVersion || {};
+          page.publishedVersion.content = incomingContent;
+        }
       }
 
       if (draftVersion) {
@@ -363,21 +383,33 @@ router.put('/:id', authorizeRole('SUPER_ADMIN', 'ADMIN', 'EDITOR', 'AUTHOR'), as
       }
       if (sections) {
         page.draftVersion.sections = sections;
-        page.publishedVersion.sections = sections;
+        if (isPublishing) page.publishedVersion.sections = sections;
       }
       if (seo) {
         page.draftVersion.seo = seo;
-        page.publishedVersion.seo = seo;
+        if (isPublishing) page.publishedVersion.seo = seo;
       }
 
-      page.status = 'published';
-      page.publishedAt = new Date();
+      if (isPublishing) {
+        page.status = 'published';
+        page.publishedAt = new Date();
+      } else {
+        page.status = 'draft';
+      }
+
       page.markModified('draftVersion');
       page.markModified('publishedVersion');
 
       await page.save();
-      await logActivity(req, 'PAGE_UPDATE', `Published real-time changes for page: "${page.title}" (${page.slug})`);
-      return res.json({ success: true, page, message: 'Changes saved and published live.' });
+      const actionMsg = isPublishing
+        ? `Published page: "${page.title}" (${page.slug})`
+        : `Saved draft for page: "${page.title}" (${page.slug})`;
+      await logActivity(req, 'PAGE_UPDATE', actionMsg);
+      return res.json({
+        success: true,
+        page,
+        message: isPublishing ? 'Changes published live.' : 'Draft saved successfully.',
+      });
     }
 
     let index = mockPages.findIndex((p) => p._id === id || p.id === id || p.slug === id.toLowerCase());
@@ -387,9 +419,9 @@ router.put('/:id', authorizeRole('SUPER_ADMIN', 'ADMIN', 'EDITOR', 'AUTHOR'), as
         id: `page_${id}`,
         title: title || id,
         slug: (slug || id).toLowerCase(),
-        status: 'published',
+        status: isPublishing ? 'published' : 'draft',
         draftVersion: { content: content || {} },
-        publishedVersion: { content: content || {} },
+        publishedVersion: isPublishing ? { content: content || {} } : { content: {} },
         updatedAt: new Date(),
       });
       index = mockPages.length - 1;
@@ -399,14 +431,20 @@ router.put('/:id', authorizeRole('SUPER_ADMIN', 'ADMIN', 'EDITOR', 'AUTHOR'), as
       const incomingContent = content || draftVersion?.content;
       if (incomingContent) {
         mockPages[index].draftVersion.content = incomingContent;
-        mockPages[index].publishedVersion.content = incomingContent;
+        if (isPublishing) {
+          mockPages[index].publishedVersion.content = incomingContent;
+        }
       }
-      mockPages[index].status = 'published';
+      mockPages[index].status = isPublishing ? 'published' : 'draft';
       mockPages[index].updatedAt = new Date();
     }
 
     await logActivity(req, 'PAGE_UPDATE', `Updated page: "${mockPages[index].title}"`);
-    res.json({ success: true, page: mockPages[index], message: 'Changes saved and published live.' });
+    res.json({
+      success: true,
+      page: mockPages[index],
+      message: isPublishing ? 'Changes published live.' : 'Draft saved successfully.',
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -418,23 +456,25 @@ router.post('/:id/publish', authorizeRole('SUPER_ADMIN', 'ADMIN', 'EDITOR'), asy
     const { id } = req.params;
 
     if (req.app.locals.dbConnected) {
-      const page = await Page.findById(id);
+      const page = await findPageByIdOrSlug(id);
       if (!page) return res.status(404).json({ success: false, message: 'Page not found.' });
 
       page.publishedVersion = {
-        sections: JSON.parse(JSON.stringify(page.draftVersion.sections || [])),
-        seo: JSON.parse(JSON.stringify(page.draftVersion.seo || {})),
-        layoutSettings: JSON.parse(JSON.stringify(page.draftVersion.layoutSettings || {})),
+        content: JSON.parse(JSON.stringify(page.draftVersion?.content || {})),
+        sections: JSON.parse(JSON.stringify(page.draftVersion?.sections || [])),
+        seo: JSON.parse(JSON.stringify(page.draftVersion?.seo || {})),
+        layoutSettings: JSON.parse(JSON.stringify(page.draftVersion?.layoutSettings || {})),
       };
       page.status = 'published';
       page.publishedAt = new Date();
+      page.markModified('publishedVersion');
 
       await page.save();
       await logActivity(req, 'PAGE_PUBLISH', `Published page: "${page.title}" (${page.slug})`);
       return res.json({ success: true, page, message: 'Page published successfully.' });
     }
 
-    const index = mockPages.findIndex((p) => p._id === id || p.id === id);
+    const index = mockPages.findIndex((p) => p._id === id || p.id === id || p.slug === id.toLowerCase());
     if (index === -1) return res.status(404).json({ success: false, message: 'Page not found.' });
 
     mockPages[index].publishedVersion = JSON.parse(JSON.stringify(mockPages[index].draftVersion));

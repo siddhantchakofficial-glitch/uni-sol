@@ -7,18 +7,19 @@ const API_BASE = ENV.API_BASE_URL || 'http://localhost:5000/api';
 const DEFAULT_SETTINGS = {
   general: {
     siteName: ENV.SITE_NAME || 'UniSpark Innovation',
-    logo: '/assets/logo.png',
-    favicon: '/favicon.svg',
+    logo: '/assets/images/unispark-logo.png',
+    favicon: '/favicon.ico',
     contactEmail: ENV.CONTACT_EMAIL || 'info@unisparkinnovation.com',
     phone: ENV.CONTACT_PHONE_INDIA || '+91 11 4567 8900',
     address: ENV.ADDRESS_INDIA || 'Connaught Place, New Delhi, India',
+    copyrightText: '© 2026 UniSpark Innovation Pvt. Ltd. All rights reserved.',
   },
   social: {
     instagram: 'https://instagram.com/unispark',
-    facebook: 'https://facebook.com/unispark',
-    linkedin: 'https://linkedin.com/company/unispark',
+    facebook: 'https://facebook.com/UnisparkInnovation',
+    linkedin: 'https://in.linkedin.com/company/unispark-innovation',
     youtube: 'https://youtube.com',
-    x: 'https://x.com/unispark',
+    x: 'https://x.com/unispark_inn',
   },
   branding: {
     primaryColor: '#0284c7',
@@ -31,10 +32,13 @@ export const SiteProvider = ({ children }) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [toast, setToast] = useState(null);
   const [siteSettings, setSiteSettings] = useState(DEFAULT_SETTINGS);
+  const [menus, setMenus] = useState({ header: null, footer: null });
 
   const fetchSettings = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/settings/public`);
+      const res = await fetch(`${API_BASE}/settings/public?_t=${Date.now()}`, {
+        cache: 'no-cache',
+      });
       if (res.ok) {
         const data = await res.json();
         if (data.success && data.settings) {
@@ -52,9 +56,50 @@ export const SiteProvider = ({ children }) => {
     }
   }, []);
 
-  useEffect(() => {
+  const fetchMenus = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/menus/public?_t=${Date.now()}`, {
+        cache: 'no-cache',
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.menus)) {
+          const header = data.menus.find((m) => m.name === 'header');
+          const footer = data.menus.find((m) => m.name === 'footer');
+          setMenus({
+            header: header?.items || null,
+            footer: footer?.items || null,
+          });
+        }
+      }
+    } catch {
+      // Fallback
+    }
+  }, []);
+
+  const refreshAll = useCallback(() => {
     fetchSettings();
-  }, [fetchSettings]);
+    fetchMenus();
+  }, [fetchSettings, fetchMenus]);
+
+  useEffect(() => {
+    refreshAll();
+
+    const handleFocus = () => refreshAll();
+    window.addEventListener('focus', handleFocus);
+
+    const handleStorage = (e) => {
+      if (e.key === 'unisol_cms_update') {
+        refreshAll();
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, [refreshAll]);
 
   const showToast = (message, type = 'info') => {
     setToast({ message, type });
@@ -79,7 +124,8 @@ export const SiteProvider = ({ children }) => {
         toast,
         showToast,
         siteSettings,
-        refreshSettings: fetchSettings,
+        menus,
+        refreshSettings: refreshAll,
       }}
     >
       {children}
@@ -94,3 +140,5 @@ export const useSiteContext = () => {
   }
   return context;
 };
+
+export default SiteContext;

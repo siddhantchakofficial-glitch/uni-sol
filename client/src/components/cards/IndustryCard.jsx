@@ -29,13 +29,13 @@ export const IndustryCard = ({ industry }) => {
         </h3>
 
         <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-          {industry.desc}
+          {industry.desc || industry.description}
         </p>
       </div>
 
       <div className="pt-6 mt-4">
         <Link
-          to={`/industries/${industry.slug}`}
+          to={industry.link || `/industries/${industry.slug || industry.id}`}
           className="inline-flex items-center gap-2 text-xs font-bold text-cyan-400 hover:text-cyan-300 uppercase tracking-wider group-hover:translate-x-1 transition-transform"
         >
           <span>Industry Solutions</span>

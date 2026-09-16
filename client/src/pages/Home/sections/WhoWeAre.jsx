@@ -3,6 +3,7 @@ import SectionHeader from '../../../components/common/SectionHeader';
 import Badge from '../../../components/ui/Badge';
 import { FaCheckCircle, FaAward, FaBuilding, FaGlobe } from 'react-icons/fa';
 import images from '../../../assets/images';
+import { resolveMediaUrl } from '../../../utils/mediaResolver';
 
 export const WhoWeAre = ({ data = {} }) => {
   const badge = data?.badge || 'Who We Are';
@@ -20,7 +21,7 @@ export const WhoWeAre = ({ data = {} }) => {
           <div className="lg:col-span-6 relative">
             <div className="relative rounded-2xl overflow-hidden border border-slate-800 shadow-2xl">
               <img
-                src={data?.imageUrl || images.abtSec}
+                src={resolveMediaUrl(data?.imageUrl, images.abtSec)}
                 alt="UniSpark Innovation Command Center"
                 className="w-full h-100 object-cover"
               />

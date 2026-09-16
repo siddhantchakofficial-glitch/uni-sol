@@ -1,0 +1,142 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-primary: #0a6eab;
+  --brand-secondary: #1380c2;
+  --brand-dark: #014b78;
+  --brand-gradient: linear-gradient(135deg, #0a6eab 0%, #1380c2 100%);
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --bg-light: #f8fafc;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-700 via-sky-600 to-cyan-600;
+  }
+
+  .text-gradient-cyan {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-400;
+  }
+
+  .bg-brand-primary {
+    background-color: #0a6eab;
+  }
+
+  .bg-brand-dark {
+    background-color: #014b78;
+  }
+
+  .text-brand-primary {
+    color: #0a6eab;
+  }
+
+  .border-brand-primary {
+    border-color: #0a6eab;
+  }
+
+  .btn-brand-primary {
+    @apply bg-[#0a6eab] hover:bg-[#085a8d] text-white font-semibold rounded-xl shadow-md transition duration-300;
+  }
+
+  .btn-brand-pill {
+    @apply bg-[#0080c6] hover:bg-[#006ca9] text-white font-bold rounded-full px-6 py-2.5 shadow-md transition duration-300;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #0a6eab;
+}
+
+/* Floating WhatsApp Radar Pulse */
+@keyframes whatsappRadarPulse {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+.whatsapp-pulse-back {
+  animation: whatsappRadarPulse 2.5s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+.whatsapp-pulse-front {
+  animation: whatsappRadarPulse 2.5s cubic-bezier(0.16, 1, 0.3, 1) infinite 1.25s;
+}
+
+/* Continuous Infinite Marquee Animation */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
+
+/* ==========================================================================
+   Google Translate Complete Hiding & Clean Integration Styles
+   Suppress top navbar, banners, popups, tooltips and frame shifts
+   ========================================================================== */
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+iframe.goog-te-banner-frame,
+.goog-te-balloon-frame,
+#goog-gt-tt,
+.goog-te-spinner-pos,
+.goog-te-menu-value,
+.goog-text-highlight,
+.goog-te-gadget-icon,
+.goog-te-gadget-simple,
+#goog-gt-vt,
+.goog-tooltip,
+.goog-tooltip:hover {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  width: 0 !important;
+}
+
+body {
+  top: 0px !important;
+  position: static !important;
+}
+
+.skiptranslate {
+  display: none !important;
+}
+
+body > .skiptranslate {
+  display: none !important;
+}
+
+#google_translate_element {
+  display: none !important;
+}
+
+font {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+

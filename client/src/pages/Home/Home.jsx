@@ -40,8 +40,8 @@ export const Home = () => {
       <Lifecycle />
       <Industries data={content?.industries} />
       <Results />
-      <TrustedBy />
-      <FAQ />
+      <TrustedBy data={content?.testimonials} />
+      <FAQ data={content?.faqs} />
       <FinalCTA />
     </div>
   );

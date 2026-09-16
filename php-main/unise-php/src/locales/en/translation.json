@@ -1,0 +1,194 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About Us",
+    "solutions": "Solutions",
+    "industries": "Industries",
+    "products": "Products",
+    "contact": "Contact Us",
+    "enquireNow": "Enquire Now",
+    "getQuote": "Get Quote",
+    "allSolutions": "All Solutions",
+    "allIndustries": "All Industries",
+    "viewAll": "View All"
+  },
+  "hero": {
+    "badge": "Next-Gen Security & Technology Solutions",
+    "titlePrefix": "Intelligent",
+    "rotatingWords": ["Security", "Automation", "Protection", "Integration", "Surveillance"],
+    "titleSuffix": "Systems for Modern Enterprises",
+    "description": "UniSpark Innovation delivers enterprise-grade security engineering, CCTV surveillance, access control, AI analytics, and building automation across the UAE & India.",
+    "ctaPrimary": "Explore Solutions",
+    "ctaSecondary": "Request Consultation",
+    "stat1Label": "Enterprise Projects",
+    "stat1Value": "500+",
+    "stat2Label": "Client Satisfaction",
+    "stat2Value": "99.4%",
+    "stat3Label": "Support SLA",
+    "stat3Value": "24/7"
+  },
+  "about": {
+    "badge": "Who We Are",
+    "title": "Engineering Trust Through Advanced Security Architecture",
+    "subtitle": "Pioneering intelligent physical security, access governance, and integrated technology solutions since 2014.",
+    "description": "At UniSpark Innovation, we design, deploy, and maintain mission-critical security and technology infrastructures. Partnering with world-leading OEMs, we protect high-value enterprise, government, and commercial assets.",
+    "card1Title": "Cognitive Shielding",
+    "card1Desc": "AI-powered threat detection and predictive analytics for proactive perimeter security.",
+    "card2Title": "Microsecond Latency",
+    "card2Desc": "Ultra-low latency biometric response and real-time access authentication.",
+    "ctaBtn": "Learn More About Us"
+  },
+  "solutions": {
+    "badge": "Our Core Expertise",
+    "title": "Comprehensive Enterprise Security Solutions",
+    "subtitle": "Tailored security engineering designed to safeguard critical infrastructure and streamline operations.",
+    "cctv": "CCTV & Video Surveillance",
+    "accessControl": "Access Control & Biometrics",
+    "perimeter": "Perimeter Security & Intrusion",
+    "turnstiles": "Turnstiles & Bollards",
+    "anpr": "ANPR & Parking Management",
+    "fireSafety": "Fire Alarm & Life Safety",
+    "publicAddress": "Public Address & Voice Alarm",
+    "buildingAutomation": "Building Management Systems (BMS)",
+    "structuredCabling": "Structured Cabling & Fiber Optics",
+    "viewDetails": "View Details",
+    "exploreAll": "Explore All Solutions"
+  },
+  "divisions": {
+    "badge": "Specialized Divisions",
+    "title": "Targeted Engineering Divisions",
+    "subtitle": "Delivering end-to-end expertise across distinct technology verticals.",
+    "division1Title": "Electronic Security Division",
+    "division1Desc": "CCTV surveillance, IP video management, perimeter intrusion, and facial recognition analytics.",
+    "division2Title": "Access & Gate Automation",
+    "division2Desc": "Flap barriers, full-height turnstiles, hydraulic bollards, automatic sliding gates, and ANPR license plate readers.",
+    "division3Title": "Life Safety & BMS Division",
+    "division3Desc": "Addressable fire detection, voice evacuation, gas suppression systems, and centralized BMS integration.",
+    "enquireDivision": "Enquire for Division"
+  },
+  "industries": {
+    "badge": "Vertical Integration",
+    "title": "Industries We Serve",
+    "subtitle": "Custom security architectures engineered for specific industry regulatory requirements and operational demands.",
+    "commercial": "Commercial Real Estate",
+    "commercialDesc": "Visitor management, turnstile integration, elevator control, and centralized video monitoring for corporate towers.",
+    "hospitality": "Hospitality & Leisure",
+    "hospitalityDesc": "Keyless mobile entry, discreet video analytics, guest safety, and perimeter surveillance for 5-star hotels.",
+    "healthcare": "Healthcare & Hospitals",
+    "healthcareDesc": "Restricted zone access control, maternity ward protection, pharmacy security, and emergency lockdown systems.",
+    "retail": "Retail & Shopping Malls",
+    "retailDesc": "Footfall analytics, heatmapping, loss prevention CCTV, and automated parking management.",
+    "education": "Education & Campuses",
+    "educationDesc": "Campus-wide emergency alerts, gate automation, student safety monitoring, and attendance tracking.",
+    "industrial": "Industrial & Logistics",
+    "industrialDesc": "Perimeter thermal imaging, hazardous area flame detection, truck ANPR, and asset tracking.",
+    "viewIndustry": "View Industry Profile"
+  },
+  "whyUs": {
+    "badge": "Why Choose UniSpark",
+    "title": "The UniSpark Advantage",
+    "subtitle": "Why top-tier enterprises choose UniSpark Innovation as their trusted security integration partner.",
+    "point1Title": "Certified Engineering Team",
+    "point1Desc": "Our engineers hold certifications from global OEMs (Hikvision, Dahua, Axis, Honeywell, Bosch, Milestone, Nedap).",
+    "point2Title": "24/7 Rapid SLA Support",
+    "point2Desc": "Dedicated maintenance team with guaranteed under 2-hour emergency response SLAs.",
+    "point3Title": "Turnkey Project Execution",
+    "point3Desc": "From initial risk assessment to design, supply, installation, testing, commissioning, and AMC.",
+    "point4Title": "Regulatory Compliance",
+    "point4Desc": "Strict compliance with SIRA, ADMCC, MCC, Civil Defense, and local regulatory standards."
+  },
+  "stats": {
+    "badge": "Track Record",
+    "title": "Numbers That Demonstrate Excellence",
+    "stat1Val": "500+",
+    "stat1Text": "Projects Completed",
+    "stat2Val": "50+",
+    "stat2Text": "Certified Engineers",
+    "stat3Val": "99.4%",
+    "stat3Text": "Client Retention",
+    "stat4Val": "10+",
+    "stat4Text": "Years of Excellence"
+  },
+  "partners": {
+    "badge": "Strategic Alliances",
+    "title": "Global OEM Partners & Integrations",
+    "subtitle": "We collaborate with the world's leading security hardware and software manufacturers.",
+    "certifiedPartner": "Authorized Technology Integrator"
+  },
+  "ourGroup": {
+    "badge": "Enterprise Group",
+    "title": "Part of a Synergy of Technology Companies",
+    "subtitle": "Delivering holistic technology, electrical engineering, and security automation across the region.",
+    "learnMore": "Learn More About Group"
+  },
+  "cta": {
+    "title": "Ready to Secure Your Enterprise Infrastructure?",
+    "subtitle": "Speak with our certified security solution architects today for a customized risk assessment and proposal.",
+    "buttonPrimary": "Schedule Free Site Survey",
+    "buttonSecondary": "Contact Engineering Team"
+  },
+  "footer": {
+    "companyDesc": "UniSpark Innovation is a premier security integration and building automation specialist delivering turnkey solutions for enterprise, commercial, and government sectors.",
+    "quickLinks": "Quick Links",
+    "solutionsHeader": "Key Solutions",
+    "contactHeader": "Get in Touch",
+    "addressDubai": "Dubai Silicon Oasis, IFZA Properties, Dubai, UAE",
+    "addressAbuDhabi": "Electra Street, Sector E-11, Abu Dhabi, UAE",
+    "phone": "+971 4 123 4567",
+    "email": "info@unisparkinnovation.com",
+    "copyright": "© 2026 UniSpark Innovation. All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms & Conditions"
+  },
+  "modal": {
+    "title": "Request Project Consultation",
+    "subtitle": "Fill out the form below and an engineer will contact you within 24 hours.",
+    "fullName": "Full Name",
+    "email": "Email Address",
+    "phone": "Phone Number",
+    "company": "Company Name",
+    "service": "Service / Solution Required",
+    "selectService": "Select a solution...",
+    "message": "Project Brief / Requirements",
+    "submit": "Submit Enquiry",
+    "submitting": "Submitting...",
+    "successTitle": "Enquiry Submitted!",
+    "successMessage": "Thank you for contacting UniSpark Innovation. Our engineering team will reach out shortly."
+  },
+  "pages": {
+    "about": {
+      "title": "About UniSpark Innovation",
+      "subtitle": "Architecting safety and intelligence into modern infrastructure.",
+      "mission": "Our Mission",
+      "missionText": "To empower enterprises with state-of-the-art security, surveillance, and automation systems that protect lives, assets, and operational continuity.",
+      "vision": "Our Vision",
+      "visionText": "To be the leading system integrator in the region, recognized for innovation, technical superiority, and flawless execution.",
+      "values": "Our Core Values",
+      "val1": "Integrity & Trust",
+      "val2": "Technical Precision",
+      "val3": "Customer Centricity",
+      "val4": "Continuous Innovation"
+    },
+    "contact": {
+      "title": "Contact Us",
+      "subtitle": "We are here to assist with your security and automation requirements.",
+      "officeDubai": "Dubai Office",
+      "officeAbuDhabi": "Abu Dhabi Office",
+      "officeIndia": "India Office",
+      "workingHours": "Working Hours",
+      "hoursDetail": "Monday - Saturday: 8:30 AM - 6:00 PM (GST)"
+    },
+    "solutionsPage": {
+      "title": "Enterprise Security & Technology Solutions",
+      "subtitle": "Explore our complete suite of physical security, access governance, and life safety solutions."
+    },
+    "industriesPage": {
+      "title": "Industry Tailored Security Solutions",
+      "subtitle": "Discover how we meet strict compliance and operational standards across diverse verticals."
+    },
+    "productsPage": {
+      "title": "Hardware & Software Product Catalog",
+      "subtitle": "Enterprise-grade IP cameras, access controllers, biometrics, turnstiles, and BMS hardware."
+    }
+  }
+}

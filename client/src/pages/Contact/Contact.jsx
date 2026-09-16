@@ -13,7 +13,7 @@ export const Contact = () => {
   const { content } = useCMS('contact', {});
   const { siteSettings } = useSiteContext();
 
-  const hero = content?.hero || {};
+  const hero = content?.banner || content?.hero || {};
   const offices = (Array.isArray(content?.offices) && content.offices.length > 0)
     ? content.offices
     : [

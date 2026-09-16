@@ -34,7 +34,7 @@ export const CapabilityCard = ({ capability }) => {
         </h3>
 
         <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-          {capability.desc}
+          {capability.desc || capability.description}
         </p>
 
         {capability.features && capability.features.length > 0 && (
@@ -51,7 +51,7 @@ export const CapabilityCard = ({ capability }) => {
 
       <div className="pt-6 mt-4">
         <Link
-          to={`/capabilities/${capability.slug}`}
+          to={capability.link || `/capabilities/${capability.slug || capability.id}`}
           className="inline-flex items-center gap-2 text-xs font-bold text-blue-400 hover:text-blue-300 uppercase tracking-wider group-hover:translate-x-1 transition-transform"
         >
           <span>Explore Capability</span>

@@ -2,6 +2,7 @@ import React from 'react';
 import Badge from '../ui/Badge';
 import Breadcrumb from './Breadcrumb';
 import images from '../../assets/images';
+import { resolveMediaUrl } from '../../utils/mediaResolver';
 
 export const PageHero = ({
   badge,
@@ -14,7 +15,7 @@ export const PageHero = ({
     <section className="relative pt-32 pb-20 overflow-hidden bg-[#f1f9ff] border-b border-slate-800/60">
       {/* Full-width banner image, consistent with the Home hero treatment. */}
       <img
-        src={image || images.hero}
+        src={resolveMediaUrl(image, images.hero)}
         alt=""
         aria-hidden="true"
         className="absolute inset-0 w-full h-full object-cover"

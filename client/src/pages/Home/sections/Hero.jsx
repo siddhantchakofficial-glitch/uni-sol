@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useSiteContext } from '../../../context/SiteContext';
 import { FaArrowRight } from 'react-icons/fa';
 import images from '../../../assets/images';
+import { resolveMediaUrl } from '../../../utils/mediaResolver';
 
 export const Hero = ({ data = {} }) => {
   const { setConsultationModalOpen } = useSiteContext();
@@ -21,7 +22,7 @@ export const Hero = ({ data = {} }) => {
       <div className="absolute inset-0 z-0">
         {data?.imageUrl ? (
           <img
-            src={data.imageUrl}
+            src={resolveMediaUrl(data.imageUrl)}
             alt="Hero Background"
             className="w-full h-full object-cover opacity-35"
           />

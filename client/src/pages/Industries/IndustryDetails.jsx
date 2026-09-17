@@ -233,12 +233,14 @@ export const IndustryDetailsContent = ({ industry, details = {}, ctaImage }) => 
       {/* 5. CTA SECTION */}
       {visibility.cta !== false && (
         <CTASection
-          title={ctaImage.title}
-          subtitle={ctaImage.subtitle}
+          title={details?.cta?.title || ctaImage?.title || 'Ready to Transform Your Enterprise Security & Infrastructure?'}
+          subtitle={details?.cta?.subtitle || ctaImage?.subtitle || 'Schedule a confidential technical consultation with our senior solutions architects today.'}
           backgroundImage={
-            ctaImage && ctaImage.showImage !== false && ctaImage.imageUrl
-              ? resolveMediaUrl(ctaImage.imageUrl)
-              : undefined
+            (details?.cta?.showImage !== false && details?.cta?.imageUrl)
+              ? resolveMediaUrl(details.cta.imageUrl)
+              : (ctaImage && ctaImage.showImage !== false && ctaImage.imageUrl)
+                ? resolveMediaUrl(ctaImage.imageUrl)
+                : undefined
           }
         />
       )}
@@ -250,11 +252,17 @@ export const IndustryDetails = () => {
   const { slug } = useParams();
   const [industry, setIndustry] = useState(null);
 
-  // Same `industries` CMS record as the landing page — per-slug config
-  // lives under `industryDetails[slug]`, following the existing draft/publish flow.
-  const { content } = useCMS('industries', {});
-  const slugDetails = content?.industryDetails?.[slug] || {};
-  const ctaImage = content?.cta || {};
+  const defaultSubData = getIndustrySubpageDefaults(slug);
+  // Dedicated subpage CMS record: /industries/[slug]
+  const { content: dedicatedContent } = useCMS(`industries/${slug}`, defaultSubData);
+  // Parent industries record fallback
+  const { content: parentContent } = useCMS('industries', {});
+
+  // Dedicated subpage CMS record takes precedence; fallback to parent industryDetails[slug] then defaults
+  const slugDetails = (dedicatedContent && Object.keys(dedicatedContent).length > 0 && dedicatedContent.hero)
+    ? dedicatedContent
+    : (parentContent?.industryDetails?.[slug] || defaultSubData);
+  const ctaImage = slugDetails?.cta || parentContent?.cta || {};
 
   useEffect(() => {
     industryService.getBySlug(slug).then((res) => setIndustry(res));

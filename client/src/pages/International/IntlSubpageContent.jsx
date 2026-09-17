@@ -49,12 +49,23 @@ const SUBPAGE_HERO_FALLBACKS = {
  * - Full section visibility toggles.
  */
 export const IntlSubpageContent = ({ slug, data: dataProp }) => {
-  const { content: fetchedContent } = useCMS('international', DEFAULT_INTERNATIONAL_DATA);
-  const content = dataProp || fetchedContent;
-
   const fallbackMeta = INTERNATIONAL_SUBPAGES_LIST.find((it) => it.slug === slug);
   const defaults = getInternationalSubpageDefaults(slug, fallbackMeta);
-  const custom = content?.subpages?.[slug] || {};
+
+  // 1. Dedicated subpage CMS record: /international/[slug]
+  const { content: dedicatedContent } = useCMS(`international/${slug}`, defaults);
+  // 2. Parent international record fallback
+  const { content: parentContent } = useCMS('international', DEFAULT_INTERNATIONAL_DATA);
+
+  // Resolution: dataProp (Live Preview) > dedicatedContent > parentContent.subpages[slug] > defaults
+  let custom = defaults;
+  if (dataProp) {
+    custom = dataProp.subpages?.[slug] || (dataProp.hero ? dataProp : defaults);
+  } else if (dedicatedContent && Object.keys(dedicatedContent).length > 0 && dedicatedContent.hero) {
+    custom = dedicatedContent;
+  } else if (parentContent?.subpages?.[slug]) {
+    custom = parentContent.subpages[slug];
+  }
 
   // Merged subpage data
   const hero = { ...defaults.hero, ...(custom.hero || {}) };

@@ -100,11 +100,28 @@ const CMS_PAGES = [
 export const AdminPages = () => {
   const [searchParams] = useSearchParams();
   const pageParam = searchParams.get('page');
-  const validPage = pageParam && CMS_PAGES.some((p) => p.id === pageParam) ? pageParam : null;
-  const [selectedPageId, setSelectedPageId] = useState('home');
+  const subpageParam = searchParams.get('subpage');
+
+  let initialPageId = 'home';
+  let initialSubpage = subpageParam || null;
+
+  if (pageParam) {
+    if (CMS_PAGES.some((p) => p.id === pageParam)) {
+      initialPageId = pageParam;
+    } else if (pageParam.startsWith('industries-') || pageParam.startsWith('industries/')) {
+      initialPageId = 'industries';
+      initialSubpage = pageParam.replace(/^industries[-/]/, '');
+    } else if (pageParam.startsWith('international-') || pageParam.startsWith('international/')) {
+      initialPageId = 'international';
+      initialSubpage = pageParam.replace(/^international[-/]/, '');
+    }
+  }
+
+  const [selectedPageId, setSelectedPageId] = useState(initialPageId);
+  const [selectedSubpage, setSelectedSubpage] = useState(initialSubpage);
   const [viewMode, setViewMode] = useState('editor'); // 'editor' | 'overview'
 
-  const activePageId = validPage || selectedPageId;
+  const activePageId = selectedPageId;
   const activePage = CMS_PAGES.find((p) => p.id === activePageId) || CMS_PAGES[0];
   const ActiveComponent = activePage.component;
 
@@ -225,7 +242,7 @@ export const AdminPages = () => {
       {/* VIEW MODE: ACTIVE PAGE VISUAL CMS EDITOR */}
       {viewMode === 'editor' && (
         <div className="animate-fade-in">
-          <ActiveComponent />
+          <ActiveComponent initialSubpage={selectedSubpage} />
         </div>
       )}
     </div>

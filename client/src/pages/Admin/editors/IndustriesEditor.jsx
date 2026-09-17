@@ -89,8 +89,10 @@ const DEFAULT_INDUSTRIES_DATA = {
   ],
 };
 
-export const IndustriesEditor = () => {
+export const IndustriesEditor = ({ initialSubpage }) => {
   const { token } = useAuth();
+  const initialSlug = initialSubpage && INDUSTRY_SLUGS.some((i) => i.slug === initialSubpage) ? initialSubpage : 'main';
+  const [activeScope, setActiveScope] = useState(initialSlug); // 'main' | industry slug
   const [data, setData] = useState(DEFAULT_INDUSTRIES_DATA);
   const [activeTab, setActiveTab] = useState('banner');
   const [subpageActiveTab, setSubpageActiveTab] = useState('hero');
@@ -107,18 +109,19 @@ export const IndustriesEditor = () => {
 
   // Live Preview state
   const [showPreview, setShowPreview] = useState(true);
-  const [previewMode, setPreviewMode] = useState('landing'); // 'landing' | 'details'
-  const [previewSlug, setPreviewSlug] = useState(INDUSTRY_SLUGS[0]?.slug || 'aviation');
+  const [previewMode, setPreviewMode] = useState(initialSlug === 'main' ? 'landing' : 'details'); // 'landing' | 'details'
+  const [previewSlug, setPreviewSlug] = useState(initialSlug === 'main' ? (INDUSTRY_SLUGS[0]?.slug || 'aviation') : initialSlug);
   const [previewDevice, setPreviewDevice] = useState('desktop'); // desktop | tablet | mobile
 
-  // Load stored CMS content
+  // Load stored CMS content for main industries page
   useEffect(() => {
     const fetchIndustriesConfig = async () => {
       try {
-        const res = await fetch(`${API_BASE}/pages/industries`, { headers: { Authorization: `Bearer ${token}` } });
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const res = await fetch(`${API_BASE}/pages/industries`, { headers });
         if (res.ok) {
           const json = await res.json();
-          const remote = json.page?.draftVersion?.content;
+          const remote = json.page?.draftVersion?.content || json.page?.publishedVersion?.content;
           if (remote) {
             setData((prev) => ({
               ...DEFAULT_INDUSTRIES_DATA,
@@ -152,10 +155,51 @@ export const IndustriesEditor = () => {
       }
     };
     fetchIndustriesConfig();
-  }, []);
+  }, [token]);
 
-  // Debounced Autosave (1500ms)
-  const triggerAutosave = useCallback((updatedData) => {
+  // Load dedicated subpage content if opening or switching to a subpage
+  const fetchSubpageConfig = useCallback(async (slug) => {
+    if (!slug || slug === 'main') return;
+    try {
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const res = await fetch(`${API_BASE}/pages/industries/${slug}`, { headers });
+      if (res.ok) {
+        const json = await res.json();
+        const remote = json.page?.draftVersion?.content || json.page?.publishedVersion?.content;
+        if (remote && Object.keys(remote).length > 0 && remote.hero) {
+          setData((prev) => ({
+            ...prev,
+            industryDetails: {
+              ...(prev.industryDetails || {}),
+              [slug]: {
+                ...getIndustrySubpageDefaults(slug),
+                ...remote,
+              },
+            },
+          }));
+        }
+      }
+    } catch (err) {
+      console.warn(`Could not load dedicated subpage CMS record for ${slug}:`, err.message);
+    }
+  }, [token]);
+
+  // Switch between Main Landing Page and any Sector Subpage
+  const handleSwitchScope = (scope) => {
+    setActiveScope(scope);
+    if (scope === 'main') {
+      setPreviewMode('landing');
+      setActiveTab('banner');
+    } else {
+      setPreviewMode('details');
+      setPreviewSlug(scope);
+      setSubpageActiveTab('hero');
+      fetchSubpageConfig(scope);
+    }
+  };
+
+  // Debounced Autosave (1500ms) - saves to dedicated endpoint based on activeScope
+  const triggerAutosave = useCallback((updatedData, currentSlug = activeScope) => {
     if (isInitialLoadRef.current) return;
     setHasUnsavedChanges(true);
 
@@ -170,35 +214,80 @@ export const IndustriesEditor = () => {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         };
-        const res = await fetch(`${API_BASE}/pages/industries`, {
-          method: 'PUT',
-          headers,
-          body: JSON.stringify({
-            title: 'Industries',
-            slug: 'industries',
-            content: updatedData,
-            publish: false,
-          }),
-        });
-        if (res.ok) {
-          setHasUnsavedChanges(false);
-          setSaveStatus('draft_saved');
-          setTimeout(() => setSaveStatus(null), 3000);
+
+        if (currentSlug === 'main') {
+          await fetch(`${API_BASE}/pages/industries`, {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify({
+              title: 'Industry Verticals',
+              slug: 'industries',
+              content: updatedData,
+              publish: false,
+            }),
+          });
+        } else {
+          const subData = updatedData.industryDetails?.[currentSlug] || getIndustrySubpageDefaults(currentSlug);
+          const currentMeta = INDUSTRY_SLUGS.find((i) => i.slug === currentSlug);
+          await fetch(`${API_BASE}/pages/industries/${currentSlug}`, {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify({
+              title: currentMeta?.title || currentSlug,
+              slug: `industries/${currentSlug}`,
+              content: subData,
+              publish: false,
+            }),
+          });
         }
+
+        setHasUnsavedChanges(false);
+        setSaveStatus('draft_saved');
+        setTimeout(() => setSaveStatus(null), 3000);
       } catch (err) {
         console.warn('Draft autosave failed:', err);
       } finally {
         setSaving(false);
       }
     }, 1500);
-  }, [token]);
+  }, [token, activeScope]);
 
   // Main updater function
   const updateData = (updater) => {
     setData((prev) => {
       const next = typeof updater === 'function' ? updater(prev) : { ...prev, ...updater };
-      triggerAutosave(next);
+      triggerAutosave(next, activeScope);
       return next;
+    });
+  };
+
+  // Subpage helper functions
+  const getActiveSubpage = (slug = activeScope !== 'main' ? activeScope : previewSlug) => {
+    const raw = data.industryDetails?.[slug];
+    const def = getIndustrySubpageDefaults(slug);
+    return {
+      hero: { ...def.hero, ...(raw?.hero || {}) },
+      overview: { ...def.overview, ...(raw?.overview || {}) },
+      cards: Array.isArray(raw?.cards) ? raw.cards : def.cards,
+      features: Array.isArray(raw?.features) ? raw.features : def.features,
+      statistics: Array.isArray(raw?.statistics) ? raw.statistics : def.statistics,
+      visibility: { ...def.visibility, ...(raw?.visibility || {}) },
+      cta: { ...(def.cta || {}), ...(raw?.cta || {}) },
+      heroImageUrl: raw?.heroImageUrl || raw?.hero?.heroImageUrl || '',
+    };
+  };
+
+  const updateActiveSubpage = (patch, targetSlug = activeScope !== 'main' ? activeScope : previewSlug) => {
+    updateData((prev) => {
+      const current = prev.industryDetails?.[targetSlug] || getIndustrySubpageDefaults(targetSlug);
+      const nextSubpage = typeof patch === 'function' ? patch(current) : { ...current, ...patch };
+      return {
+        ...prev,
+        industryDetails: {
+          ...(prev.industryDetails || {}),
+          [targetSlug]: nextSubpage,
+        },
+      };
     });
   };
 
@@ -212,22 +301,45 @@ export const IndustriesEditor = () => {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       };
-      const res = await fetch(`${API_BASE}/pages/industries`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify({
-          title: 'Industries',
-          slug: 'industries',
-          content: data,
-          publish: false,
-        }),
-      });
-      if (res.ok) {
-        setHasUnsavedChanges(false);
-        setSaveStatus('draft_saved');
-        setTimeout(() => setSaveStatus(null), 3500);
+
+      if (activeScope === 'main') {
+        const res = await fetch(`${API_BASE}/pages/industries`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({
+            title: 'Industry Verticals',
+            slug: 'industries',
+            content: data,
+            publish: false,
+          }),
+        });
+        if (res.ok) {
+          setHasUnsavedChanges(false);
+          setSaveStatus('draft_saved');
+          setTimeout(() => setSaveStatus(null), 3500);
+        } else {
+          setSaveStatus('error');
+        }
       } else {
-        setSaveStatus('error');
+        const subData = getActiveSubpage(activeScope);
+        const currentMeta = INDUSTRY_SLUGS.find((i) => i.slug === activeScope);
+        const res = await fetch(`${API_BASE}/pages/industries/${activeScope}`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({
+            title: currentMeta?.title || activeScope,
+            slug: `industries/${activeScope}`,
+            content: subData,
+            publish: false,
+          }),
+        });
+        if (res.ok) {
+          setHasUnsavedChanges(false);
+          setSaveStatus('draft_saved');
+          setTimeout(() => setSaveStatus(null), 3500);
+        } else {
+          setSaveStatus('error');
+        }
       }
     } catch {
       setSaveStatus('error');
@@ -246,58 +358,55 @@ export const IndustriesEditor = () => {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       };
-      const res = await fetch(`${API_BASE}/pages/industries`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify({
-          title: 'Industries',
-          slug: 'industries',
-          content: data,
-          publish: true,
-        }),
-      });
-      if (res.ok) {
-        notifyCMSPublish('industries');
-        setHasUnsavedChanges(false);
-        setSaveStatus('published');
-        setTimeout(() => setSaveStatus(null), 4000);
+
+      if (activeScope === 'main') {
+        const res = await fetch(`${API_BASE}/pages/industries`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({
+            title: 'Industry Verticals',
+            slug: 'industries',
+            content: data,
+            publish: true,
+          }),
+        });
+        if (res.ok) {
+          notifyCMSPublish('industries');
+          setHasUnsavedChanges(false);
+          setSaveStatus('published');
+          setTimeout(() => setSaveStatus(null), 4000);
+        } else {
+          setSaveStatus('error');
+        }
       } else {
-        setSaveStatus('error');
+        const subData = getActiveSubpage(activeScope);
+        const currentMeta = INDUSTRY_SLUGS.find((i) => i.slug === activeScope);
+        const res = await fetch(`${API_BASE}/pages/industries/${activeScope}`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({
+            title: currentMeta?.title || activeScope,
+            slug: `industries/${activeScope}`,
+            content: subData,
+            publish: true,
+          }),
+        });
+        if (res.ok) {
+          notifyCMSPublish(`industries/${activeScope}`);
+          notifyCMSPublish(`industries-${activeScope}`);
+          notifyCMSPublish('industries');
+          setHasUnsavedChanges(false);
+          setSaveStatus('published');
+          setTimeout(() => setSaveStatus(null), 4000);
+        } else {
+          setSaveStatus('error');
+        }
       }
     } catch {
       setSaveStatus('error');
     } finally {
       setPublishing(false);
     }
-  };
-
-  // Subpage helper functions
-  const getActiveSubpage = () => {
-    const raw = data.industryDetails?.[previewSlug];
-    const def = getIndustrySubpageDefaults(previewSlug);
-    return {
-      hero: { ...def.hero, ...(raw?.hero || {}) },
-      overview: { ...def.overview, ...(raw?.overview || {}) },
-      cards: Array.isArray(raw?.cards) ? raw.cards : def.cards,
-      features: Array.isArray(raw?.features) ? raw.features : def.features,
-      statistics: Array.isArray(raw?.statistics) ? raw.statistics : def.statistics,
-      visibility: { ...def.visibility, ...(raw?.visibility || {}) },
-      heroImageUrl: raw?.heroImageUrl || raw?.hero?.heroImageUrl || '',
-    };
-  };
-
-  const updateActiveSubpage = (patch) => {
-    updateData((prev) => {
-      const current = prev.industryDetails?.[previewSlug] || getIndustrySubpageDefaults(previewSlug);
-      const nextSubpage = typeof patch === 'function' ? patch(current) : { ...current, ...patch };
-      return {
-        ...prev,
-        industryDetails: {
-          ...(prev.industryDetails || {}),
-          [previewSlug]: nextSubpage,
-        },
-      };
-    });
   };
 
   const handleSaveIndustry = (e) => {

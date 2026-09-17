@@ -68,7 +68,7 @@ export const SolutionsEditor = () => {
   useEffect(() => {
     const fetchSolutionsConfig = async () => {
       try {
-        const res = await fetch(`${API_BASE}/pages/capabilities`);
+        const res = await fetch(`${API_BASE}/pages/capabilities`, { headers: { Authorization: `Bearer ${token}` } });
         if (res.ok) {
           const json = await res.json();
           if (json.page?.draftVersion?.content) {

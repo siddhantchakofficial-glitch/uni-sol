@@ -50,6 +50,8 @@ const DEFAULT_DATA = {
 
 export const InternationalEditor = () => {
   const { token } = useAuth();
+  // 'main' = International landing page; any other string = subpage slug
+  const [activeScope, setActiveScope] = useState('main');
   const [data, setData] = useState(DEFAULT_DATA);
   const [activeTab, setActiveTab] = useState('banner');
   const [saving, setSaving] = useState(false);
@@ -64,13 +66,15 @@ export const InternationalEditor = () => {
   const [previewSlug, setPreviewSlug] = useState(INTERNATIONAL_SUBPAGES_LIST[0]?.slug || 'technology-security');
   const [previewDevice, setPreviewDevice] = useState('desktop');
 
+  // Load main International landing page CMS record
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`${API_BASE}/pages/international`);
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const res = await fetch(`${API_BASE}/pages/international`, { headers });
         if (res.ok) {
           const json = await res.json();
-          const remote = json.page?.draftVersion?.content;
+          const remote = json.page?.draftVersion?.content || json.page?.publishedVersion?.content;
           if (remote) {
             setData((prev) => ({
               ...DEFAULT_DATA, ...remote,
@@ -93,9 +97,50 @@ export const InternationalEditor = () => {
       finally { setTimeout(() => { isInitialLoadRef.current = false; }, 600); }
     };
     fetchData();
-  }, []);
+  }, [token]);
 
-  const triggerAutosave = useCallback((updatedData) => {
+  // Load dedicated subpage CMS record when switching to a subpage scope
+  const fetchSubpageConfig = useCallback(async (slug) => {
+    if (!slug || slug === 'main') return;
+    try {
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const res = await fetch(`${API_BASE}/pages/international/${slug}`, { headers });
+      if (res.ok) {
+        const json = await res.json();
+        const remote = json.page?.draftVersion?.content || json.page?.publishedVersion?.content;
+        if (remote && Object.keys(remote).length > 0 && remote.hero) {
+          setData((prev) => ({
+            ...prev,
+            subpages: {
+              ...(prev.subpages || {}),
+              [slug]: {
+                ...getInternationalSubpageDefaults(slug),
+                ...remote,
+              },
+            },
+          }));
+        }
+      }
+    } catch (err) {
+      console.warn(`Could not load dedicated subpage CMS record for ${slug}:`, err.message);
+    }
+  }, [token]);
+
+  // Switch between Main Landing and any Subpage
+  const handleSwitchScope = (scope) => {
+    setActiveScope(scope);
+    if (scope === 'main') {
+      setPreviewMode('landing');
+      setActiveTab('banner');
+    } else {
+      setPreviewMode('subpage');
+      setPreviewSlug(scope);
+      setActiveTab('sp_hero');
+      fetchSubpageConfig(scope);
+    }
+  };
+
+  const triggerAutosave = useCallback((updatedData, currentScope = activeScope) => {
     if (isInitialLoadRef.current) return;
     setHasUnsavedChanges(true);
     if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
@@ -103,19 +148,33 @@ export const InternationalEditor = () => {
       try {
         setSaving(true);
         const headers = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
-        const res = await fetch(`${API_BASE}/pages/international`, {
-          method: 'PUT', headers,
-          body: JSON.stringify({ title: 'International', slug: 'international', content: updatedData, publish: false }),
-        });
-        if (res.ok) { setHasUnsavedChanges(false); setSaveStatus('draft_saved'); setTimeout(() => setSaveStatus(null), 3000); }
+        if (currentScope === 'main') {
+          await fetch(`${API_BASE}/pages/international`, {
+            method: 'PUT', headers,
+            body: JSON.stringify({ title: 'International', slug: 'international', content: updatedData, publish: false }),
+          });
+        } else {
+          const subData = updatedData.subpages?.[currentScope] || getInternationalSubpageDefaults(currentScope);
+          const spMeta = INTERNATIONAL_SUBPAGES_LIST.find((s) => s.slug === currentScope);
+          await fetch(`${API_BASE}/pages/international/${currentScope}`, {
+            method: 'PUT', headers,
+            body: JSON.stringify({
+              title: spMeta?.title || currentScope,
+              slug: `international/${currentScope}`,
+              content: subData,
+              publish: false,
+            }),
+          });
+        }
+        setHasUnsavedChanges(false); setSaveStatus('draft_saved'); setTimeout(() => setSaveStatus(null), 3000);
       } catch { } finally { setSaving(false); }
     }, 1500);
-  }, [token]);
+  }, [token, activeScope]);
 
   const updateData = (updater) => {
     setData((prev) => {
       const next = typeof updater === 'function' ? updater(prev) : { ...prev, ...updater };
-      triggerAutosave(next);
+      triggerAutosave(next, activeScope);
       return next;
     });
   };
@@ -125,12 +184,28 @@ export const InternationalEditor = () => {
     setSaving(true); setSaveStatus(null);
     try {
       const headers = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
-      const res = await fetch(`${API_BASE}/pages/international`, {
-        method: 'PUT', headers,
-        body: JSON.stringify({ title: 'International', slug: 'international', content: data, publish: false }),
-      });
-      if (res.ok) { setHasUnsavedChanges(false); setSaveStatus('draft_saved'); setTimeout(() => setSaveStatus(null), 3500); }
-      else setSaveStatus('error');
+      if (activeScope === 'main') {
+        const res = await fetch(`${API_BASE}/pages/international`, {
+          method: 'PUT', headers,
+          body: JSON.stringify({ title: 'International', slug: 'international', content: data, publish: false }),
+        });
+        if (res.ok) { setHasUnsavedChanges(false); setSaveStatus('draft_saved'); setTimeout(() => setSaveStatus(null), 3500); }
+        else setSaveStatus('error');
+      } else {
+        const subData = data.subpages?.[activeScope] || getInternationalSubpageDefaults(activeScope);
+        const spMeta = INTERNATIONAL_SUBPAGES_LIST.find((s) => s.slug === activeScope);
+        const res = await fetch(`${API_BASE}/pages/international/${activeScope}`, {
+          method: 'PUT', headers,
+          body: JSON.stringify({
+            title: spMeta?.title || activeScope,
+            slug: `international/${activeScope}`,
+            content: subData,
+            publish: false,
+          }),
+        });
+        if (res.ok) { setHasUnsavedChanges(false); setSaveStatus('draft_saved'); setTimeout(() => setSaveStatus(null), 3500); }
+        else setSaveStatus('error');
+      }
     } catch { setSaveStatus('error'); } finally { setSaving(false); }
   };
 
@@ -139,18 +214,40 @@ export const InternationalEditor = () => {
     setPublishing(true); setSaveStatus(null);
     try {
       const headers = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
-      const res = await fetch(`${API_BASE}/pages/international`, {
-        method: 'PUT', headers,
-        body: JSON.stringify({ title: 'International', slug: 'international', content: data, publish: true }),
-      });
-      if (res.ok) { notifyCMSPublish('international'); setHasUnsavedChanges(false); setSaveStatus('published'); setTimeout(() => setSaveStatus(null), 4000); }
-      else setSaveStatus('error');
+      if (activeScope === 'main') {
+        const res = await fetch(`${API_BASE}/pages/international`, {
+          method: 'PUT', headers,
+          body: JSON.stringify({ title: 'International', slug: 'international', content: data, publish: true }),
+        });
+        if (res.ok) { notifyCMSPublish('international'); setHasUnsavedChanges(false); setSaveStatus('published'); setTimeout(() => setSaveStatus(null), 4000); }
+        else setSaveStatus('error');
+      } else {
+        const subData = data.subpages?.[activeScope] || getInternationalSubpageDefaults(activeScope);
+        const spMeta = INTERNATIONAL_SUBPAGES_LIST.find((s) => s.slug === activeScope);
+        const res = await fetch(`${API_BASE}/pages/international/${activeScope}`, {
+          method: 'PUT', headers,
+          body: JSON.stringify({
+            title: spMeta?.title || activeScope,
+            slug: `international/${activeScope}`,
+            content: subData,
+            publish: true,
+          }),
+        });
+        if (res.ok) {
+          notifyCMSPublish(`international/${activeScope}`);
+          notifyCMSPublish('international'); // Also refresh parent
+          setHasUnsavedChanges(false); setSaveStatus('published'); setTimeout(() => setSaveStatus(null), 4000);
+        } else setSaveStatus('error');
+      }
     } catch { setSaveStatus('error'); } finally { setPublishing(false); }
   };
 
-  const getActiveSubpage = () => {
-    const raw = data.subpages?.[previewSlug];
-    const def = getInternationalSubpageDefaults(previewSlug);
+  // The effective subpage slug for the editor panel
+  const editSlug = activeScope !== 'main' ? activeScope : previewSlug;
+
+  const getActiveSubpage = (slug = editSlug) => {
+    const raw = data.subpages?.[slug];
+    const def = getInternationalSubpageDefaults(slug);
     return {
       hero: { ...def.hero, ...(raw?.hero || {}) },
       intro: { ...def.intro, ...(raw?.intro || {}) },
@@ -163,11 +260,11 @@ export const InternationalEditor = () => {
     };
   };
 
-  const updateActiveSubpage = (patch) => {
+  const updateActiveSubpage = (patch, targetSlug = editSlug) => {
     updateData((prev) => {
-      const current = prev.subpages?.[previewSlug] || getInternationalSubpageDefaults(previewSlug);
+      const current = prev.subpages?.[targetSlug] || getInternationalSubpageDefaults(targetSlug);
       const next = typeof patch === 'function' ? patch(current) : { ...current, ...patch };
-      return { ...prev, subpages: { ...(prev.subpages || {}), [previewSlug]: next } };
+      return { ...prev, subpages: { ...(prev.subpages || {}), [targetSlug]: next } };
     });
   };
 
@@ -207,6 +304,11 @@ export const InternationalEditor = () => {
         <div>
           <div className="flex items-center gap-2 flex-wrap">
             <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-100 text-[#0470aa]">International CMS</span>
+            {activeScope !== 'main' && (
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">
+                {INTERNATIONAL_SUBPAGES_LIST.find((s) => s.slug === activeScope)?.title || activeScope}
+              </span>
+            )}
             <span className="text-xs text-gray-500">Live Website Sync</span>
             {saving && <span className="flex items-center gap-1 text-[11px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full font-medium"><FaSpinner className="animate-spin w-2.5 h-2.5" /> Autosaving...</span>}
             {hasUnsavedChanges && !saving && <span className="text-[11px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full font-medium">Unsaved edits</span>}
@@ -223,7 +325,7 @@ export const InternationalEditor = () => {
             {showPreview ? <FaEyeSlash className="w-3 h-3" /> : <FaEye className="w-3 h-3" />}
             <span>{showPreview ? 'Hide Preview' : 'Show Preview'}</span>
           </button>
-          <a href="/international" target="_blank" rel="noopener noreferrer"
+          <a href={activeScope === 'main' ? '/international' : `/international/${activeScope}`} target="_blank" rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-gray-700 hover:text-[#0470aa] hover:bg-gray-50 transition-colors">
             <FaExternalLinkAlt className="w-3 h-3" /><span>View Live Site</span>
           </a>
@@ -240,15 +342,66 @@ export const InternationalEditor = () => {
         </div>
       </div>
 
-      {/* Main Tabs */}
-      <div className="flex flex-wrap gap-2 border-b border-gray-200 pb-3">
-        {MAIN_TABS.map((tab) => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-            className={`${TAB_BASE} ${activeTab === tab.id ? TAB_ACTIVE : TAB_IDLE}`}>
-            {tab.label}
+      {/* Scope Switcher: Main Landing vs Sub-Pages */}
+      <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-3">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => handleSwitchScope('main')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+              activeScope === 'main'
+                ? 'bg-[#0470aa] text-white border-[#0470aa] shadow-sm'
+                : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-white hover:border-[#0470aa]/40'
+            }`}
+          >
+            🌐 Main Landing Page
           </button>
-        ))}
+          <span className="text-xs text-gray-400 font-medium">or select a sub-page →</span>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">
+          {INTERNATIONAL_SUBPAGES_LIST.map((sp) => (
+            <button
+              key={sp.slug}
+              type="button"
+              onClick={() => handleSwitchScope(sp.slug)}
+              className={`px-2.5 py-1.5 rounded-lg border text-[11px] font-semibold text-left transition-all ${
+                activeScope === sp.slug
+                  ? 'border-purple-400 bg-purple-50 text-purple-700 shadow-xs'
+                  : 'border-gray-200 bg-gray-50/50 text-gray-600 hover:bg-white hover:border-purple-300/60'
+              }`}
+            >
+              {sp.title}
+            </button>
+          ))}
+        </div>
       </div>
+
+      {/* Main Tabs (only shown when editing main landing page) */}
+      {activeScope === 'main' && (
+        <div className="flex flex-wrap gap-2 border-b border-gray-200 pb-3">
+          {MAIN_TABS.map((tab) => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              className={`${TAB_BASE} ${activeTab === tab.id ? TAB_ACTIVE : TAB_IDLE}`}>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Sub-Page Tabs (only shown when editing a subpage) */}
+      {activeScope !== 'main' && (
+        <div className="flex flex-wrap gap-2 border-b border-gray-200 pb-3">
+          <button type="button" onClick={() => handleSwitchScope('main')} className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">
+            ← Main Page
+          </button>
+          {SUB_TABS.map((st) => (
+            <button key={st.id} onClick={() => setActiveTab(st.id)}
+              className={`${TAB_BASE} ${activeTab === st.id ? 'bg-purple-600 text-white shadow-sm' : TAB_IDLE}`}>
+              {st.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Split layout */}
       <div className={`flex gap-6 ${showPreview ? 'flex-col xl:flex-row' : ''}`}>
@@ -510,38 +663,34 @@ export const InternationalEditor = () => {
             </div>
           )}
 
-          {/* 11. SUB-PAGES selector */}
+          {/* 11. SUB-PAGES selector (kept for backward compat but now just links to scope switcher) */}
           {activeTab === 'subpages' && (
             <div className="bg-white rounded-2xl border border-gray-200 p-5 space-y-3">
               <h3 className="text-sm font-bold text-gray-900">Select Sub-Page to Edit</h3>
+              <p className="text-xs text-gray-500">Use the scope switcher at the top to edit any sub-page with its own dedicated CMS record and live preview.</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {INTERNATIONAL_SUBPAGES_LIST.map((sp) => (
                   <button key={sp.slug} type="button"
-                    onClick={() => { setPreviewSlug(sp.slug); setPreviewMode('subpage'); setActiveTab('sp_hero'); }}
-                    className={`px-3.5 py-2.5 rounded-xl border text-xs font-semibold text-left transition-all ${previewSlug===sp.slug?'border-[#0470aa] bg-sky-50 text-[#0470aa] shadow-xs':'border-gray-200 bg-gray-50/50 text-gray-700 hover:bg-white hover:border-[#0470aa]/40'}`}>
+                    onClick={() => handleSwitchScope(sp.slug)}
+                    className={`px-3.5 py-2.5 rounded-xl border text-xs font-semibold text-left transition-all ${activeScope===sp.slug?'border-purple-400 bg-purple-50 text-purple-700 shadow-xs':'border-gray-200 bg-gray-50/50 text-gray-700 hover:bg-white hover:border-purple-300/60'}`}>
                     {sp.title}
                   </button>
                 ))}
               </div>
-              <p className="text-[11px] text-gray-400">Click a sub-page to edit it. The live preview will switch automatically.</p>
             </div>
           )}
 
-          {/* SUB-PAGE EDITING */}
-          {activeTab.startsWith('sp_') && (
+          {/* SUB-PAGE EDITING — renders when activeScope is a subpage OR from the old sp_ tabs in subpages mode */}
+          {(activeScope !== 'main' || activeTab.startsWith('sp_')) && (
             <div className="space-y-4">
               <div className="bg-white rounded-2xl border border-gray-200 p-4">
                 <div className="flex justify-between mb-3">
-                  <h3 className="text-sm font-bold text-gray-900">{INTERNATIONAL_SUBPAGES_LIST.find(sp=>sp.slug===previewSlug)?.title||previewSlug}</h3>
-                  <button type="button" onClick={()=>setActiveTab('subpages')} className="text-xs text-gray-500 hover:text-gray-700 font-semibold">← All Sub-Pages</button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {SUB_TABS.map(st=>(
-                    <button key={st.id} onClick={()=>setActiveTab(st.id)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${activeTab===st.id?'bg-[#0470aa] text-white':'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
-                      {st.label}
-                    </button>
-                  ))}
+                  <h3 className="text-sm font-bold text-gray-900">
+                    {INTERNATIONAL_SUBPAGES_LIST.find((sp) => sp.slug === editSlug)?.title || editSlug}
+                  </h3>
+                  <a href={`/international/${editSlug}`} target="_blank" rel="noopener noreferrer" className="text-xs text-[#0470aa] font-semibold hover:underline flex items-center gap-1">
+                    <FaExternalLinkAlt className="w-2.5 h-2.5" /> View Page
+                  </a>
                 </div>
               </div>
               <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">

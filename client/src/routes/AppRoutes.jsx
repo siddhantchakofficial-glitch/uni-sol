@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useParams } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import AdminLayout from '../layouts/AdminLayout';
 import ProtectedRoute from '../components/admin/ProtectedRoute';
@@ -15,6 +15,7 @@ import Industries from '../pages/Industries/Industries';
 import IndustryDetails from '../pages/Industries/IndustryDetails';
 
 import International from '../pages/International/International';
+import { IntlSubpageContent } from '../pages/International/IntlSubpageContent';
 import TechnologySecurity from '../pages/International/TechnologySecurity';
 import CybersecurityRiskGovernance from '../pages/International/CybersecurityRiskGovernance';
 import ManagedITServices from '../pages/International/ManagedITServices';
@@ -63,6 +64,11 @@ const AdminRedirect = () => {
   return <Navigate to={isAuthenticated ? '/admin/dashboard' : '/admin/login'} replace />;
 };
 
+const IntlSubpageContentWrapper = () => {
+  const { slug } = useParams();
+  return <IntlSubpageContent slug={slug} />;
+};
+
 export const AppRoutes = () => {
   return (
     <Routes>
@@ -104,6 +110,8 @@ export const AppRoutes = () => {
         <Route path="international/security-infrastructure" element={<SecurityInfrastructure />} />
         <Route path="international/security-installation-maintenance" element={<SecurityInstallationMaintenance />} />
         <Route path="international/security-equipment-access-control" element={<SecurityEquipmentAccessControl />} />
+        {/* Dynamic subpage fallback for any /international/:slug */}
+        <Route path="international/:slug" element={<IntlSubpageContentWrapper />} />
 
         {/* Contact */}
         <Route path="contact" element={<Contact />} />

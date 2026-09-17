@@ -137,29 +137,150 @@ let mockPages = [
   },
 ];
 
-// Helper to find page by MongoDB ID or slug
-const findPageByIdOrSlug = async (identifier) => {
-  if (!identifier) return null;
-  const clean = identifier.toLowerCase().trim();
-  if (mongoose.Types.ObjectId.isValid(identifier)) {
-    const page = await Page.findById(identifier);
-    if (page) return page;
-  }
-  return await Page.findOne({ slug: clean });
+// Formatter for auto-generated page titles
+const formatPageTitle = (identifier) => {
+  const clean = identifier.toLowerCase().trim().replace(/^page_/, '');
+  const standard = {
+    home: 'Home Page',
+    header: 'Header & Navigation',
+    about: 'About Us',
+    capabilities: 'Capabilities & Solutions',
+    industries: 'Industry Verticals',
+    international: 'International Enterprise Operations',
+    contact: 'Contact Us',
+    'footer-seo': 'Footer & Global SEO',
+    'industries/aviation': 'Aviation & Transportation',
+    'industries/real-estate': 'Real Estate & Commercial',
+    'industries/oil-gas': 'Oil & Gas / Energy',
+    'industries/hospitality': 'Hospitality & Leisure',
+    'industries/healthcare': 'Healthcare & Life Sciences',
+    'industries/retail': 'Retail & Consumer Goods',
+    'industries/bfsi': 'BFSI & Banking',
+    'industries/manufacturing': 'Manufacturing & Logistics',
+    'international/technology-security': 'Technology & Security Operations',
+    'international/cybersecurity-risk-governance': 'Cybersecurity & Risk Governance',
+    'international/managed-it-services': 'Managed IT Services & Infrastructure',
+    'international/it-ites-operations': 'IT & ITeS Operations',
+    'international/gcc-operations': 'GCC Technology & Workforce Operations',
+    'international/workforce': 'Workforce & Business Operations',
+    'international/hr-advisory': 'HR Advisory & Consultancy',
+    'international/payroll-compliance': 'Payroll & Compliance Operations',
+    'international/hrms': 'HRMS & Workforce Systems',
+    'international/workforce-deployment': 'Workforce Deployment & Augmentation',
+    'international/skilled-workforce': 'Skilled Workforce Solutions',
+    'international/hr-solutions': 'HR Solutions',
+    'international/security-infrastructure': 'Security Systems & Infrastructure',
+    'international/security-installation-maintenance': 'Security Installation & Maintenance',
+    'international/security-equipment-access-control': 'Security Equipment & Access Control',
+  };
+
+  const keyWithSlash = clean.replace(/-/g, '/');
+  const keyWithHyphen = clean.replace(/\//g, '-');
+  if (standard[clean]) return standard[clean];
+  if (standard[keyWithSlash]) return standard[keyWithSlash];
+  if (standard[keyWithHyphen]) return standard[keyWithHyphen];
+
+  const stripped = clean.replace(/^(industries|international)[-/]/, '');
+  return stripped.replace(/[-/]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 };
 
-// PUBLIC ROUTE: Get published page by slug
+// Helper to find page by MongoDB ID or slug (supports slashed, hyphenated, and prefixed subpage slugs)
+const findPageByIdOrSlug = async (identifier) => {
+  if (!identifier) return null;
+  const clean = decodeURIComponent(identifier).toLowerCase().trim();
+  if (mongoose.Types.ObjectId.isValid(clean)) {
+    const page = await Page.findById(clean);
+    if (page) return page;
+  }
+
+  const variations = [
+    clean,
+    clean.replace(/\//g, '-'),
+    clean.replace(/-/g, '/'),
+  ];
+
+  if (clean.startsWith('industries-') || clean.startsWith('industries/')) {
+    const raw = clean.replace(/^industries[-/]/, '');
+    variations.push(raw, `industries-${raw}`, `industries/${raw}`);
+  } else if (clean.startsWith('international-') || clean.startsWith('international/')) {
+    const raw = clean.replace(/^international[-/]/, '');
+    variations.push(raw, `international-${raw}`, `international/${raw}`);
+  } else {
+    variations.push(
+      `industries-${clean}`,
+      `industries/${clean}`,
+      `international-${clean}`,
+      `international/${clean}`
+    );
+  }
+
+  const uniqueCandidates = Array.from(new Set(variations));
+  for (const slugCand of uniqueCandidates) {
+    const page = await Page.findOne({ slug: slugCand });
+    if (page) return page;
+  }
+
+  return null;
+};
+
+// PUBLIC ROUTE: Get published page by slug (supports subpaths like /industries/aviation or /international/technology-security)
 // Supports ?lang=<code> query param for multilingual delivery
-router.get('/public/:slug', async (req, res) => {
+router.get('/public/:slug(*)', async (req, res) => {
   try {
-    const slug = req.params.slug.toLowerCase().trim();
+    const rawSlug = req.params.slug || req.params[0] || '';
+    const slug = decodeURIComponent(rawSlug).toLowerCase().trim();
     const lang = req.query.lang && req.query.lang !== 'en' ? req.query.lang.toLowerCase().trim() : null;
 
     if (req.app.locals.dbConnected) {
-      let page = await Page.findOne({ slug });
+      let page = await findPageByIdOrSlug(slug);
+
+      // If dedicated page not yet in DB, check fallback in parent industries/international page
       if (!page) {
+        if (slug.includes('industries') || ['aviation','real-estate','oil-gas','hospitality','healthcare','retail','bfsi','manufacturing'].some(s => slug.includes(s))) {
+          const parent = await findPageByIdOrSlug('industries');
+          const subSlug = slug.replace(/^industries[-/]/, '');
+          const pContent = parent?.publishedVersion?.content || parent?.draftVersion?.content;
+          if (pContent?.industryDetails?.[subSlug]) {
+            return res.json({
+              success: true,
+              page: {
+                id: `page_industries_${subSlug}`,
+                title: formatPageTitle(`industries/${subSlug}`),
+                slug,
+                status: 'published',
+                content: pContent.industryDetails[subSlug],
+                sections: [],
+                seo: {},
+                publishedAt: parent?.publishedAt || new Date(),
+                translationMeta: { lang: 'en', fallback: false },
+              },
+            });
+          }
+        } else if (slug.includes('international') || ['technology-security','cybersecurity-risk-governance','managed-it-services','it-ites-operations','gcc-operations','workforce','hr-advisory','payroll-compliance','hrms','workforce-deployment','skilled-workforce','hr-solutions','security-infrastructure','security-installation-maintenance','security-equipment-access-control'].some(s => slug.includes(s))) {
+          const parent = await findPageByIdOrSlug('international');
+          const subSlug = slug.replace(/^international[-/]/, '');
+          const pContent = parent?.publishedVersion?.content || parent?.draftVersion?.content;
+          if (pContent?.subpages?.[subSlug]) {
+            return res.json({
+              success: true,
+              page: {
+                id: `page_international_${subSlug}`,
+                title: formatPageTitle(`international/${subSlug}`),
+                slug,
+                status: 'published',
+                content: pContent.subpages[subSlug],
+                sections: [],
+                seo: {},
+                publishedAt: parent?.publishedAt || new Date(),
+                translationMeta: { lang: 'en', fallback: false },
+              },
+            });
+          }
+        }
+
         return res.status(404).json({ success: false, message: 'Page not found.' });
       }
+
       const activeContent = (page.publishedVersion?.content && Object.keys(page.publishedVersion.content).length > 0)
         ? page.publishedVersion.content
         : (page.draftVersion?.content || {});
@@ -203,8 +324,31 @@ router.get('/public/:slug', async (req, res) => {
       });
     }
 
-    const page = mockPages.find((p) => p.slug === slug);
+    let page = mockPages.find((p) => p.slug === slug || p.slug === slug.replace(/\//g, '-') || p.slug === slug.replace(/-/g, '/'));
     if (!page) {
+      const subSlug = slug.replace(/^(industries|international)[-/]/, '');
+      const parentSlug = slug.includes('international') ? 'international' : 'industries';
+      const parent = mockPages.find((p) => p.slug === parentSlug);
+      const pContent = parent?.publishedVersion?.content || parent?.draftVersion?.content;
+      const subContent = parentSlug === 'industries' ? pContent?.industryDetails?.[subSlug] : pContent?.subpages?.[subSlug];
+
+      if (subContent) {
+        return res.json({
+          success: true,
+          page: {
+            id: `page_${slug.replace(/[^a-z0-9_-]/g, '_')}`,
+            title: formatPageTitle(slug),
+            slug,
+            status: 'published',
+            content: subContent,
+            sections: [],
+            seo: {},
+            publishedAt: new Date(),
+            translationMeta: { lang: 'en', fallback: false },
+          },
+        });
+      }
+
       return res.status(404).json({ success: false, message: 'Page not found.' });
     }
 
@@ -312,48 +456,40 @@ router.post('/', authorizeRole('SUPER_ADMIN', 'ADMIN', 'EDITOR'), async (req, re
   }
 });
 
-// GET /api/pages/:id - Get page details (supports mongo ID or slug)
-router.get('/:id', async (req, res) => {
+// GET /api/pages/:id - Get page details (supports mongo ID or slug, including subpaths like industries/aviation)
+router.get('/:id(*)', async (req, res) => {
   try {
-    const { id } = req.params;
+    const rawId = req.params.id || req.params[0] || '';
+    const id = decodeURIComponent(rawId).toLowerCase().trim();
 
     if (req.app.locals.dbConnected) {
       let page = await findPageByIdOrSlug(id);
       if (!page) {
-        // Auto-create initial skeleton if looking up standard CMS page
-        const standardPages = {
-          home: 'Home Page',
-          about: 'About Us',
-          capabilities: 'Capabilities & Solutions',
-          industries: 'Industry Verticals',
-          contact: 'Contact Us',
-        };
-        if (standardPages[id.toLowerCase()]) {
-          page = await Page.create({
-            title: standardPages[id.toLowerCase()],
-            slug: id.toLowerCase(),
-            status: 'published',
-            authorName: 'Admin',
-            draftVersion: { content: {}, sections: [], seo: {} },
-            publishedVersion: { content: {}, sections: [], seo: {} },
-            publishedAt: new Date(),
-          });
-        } else {
-          return res.status(404).json({ success: false, message: 'Page not found.' });
-        }
+        // Auto-create initial skeleton for requested page or subpage
+        const title = formatPageTitle(id);
+        page = await Page.create({
+          title,
+          slug: id,
+          status: 'published',
+          authorName: req.user?.username || 'Admin',
+          draftVersion: { content: {}, sections: [], seo: { title, description: '' } },
+          publishedVersion: { content: {}, sections: [], seo: { title, description: '' } },
+          publishedAt: new Date(),
+        });
       }
       return res.json({ success: true, page });
     }
 
-    let page = mockPages.find((p) => p._id === id || p.id === id || p.slug === id.toLowerCase());
+    let page = mockPages.find((p) => p._id === id || p.id === id || p.slug === id.toLowerCase() || p.slug === id.replace(/\//g, '-'));
     if (!page) {
+      const title = formatPageTitle(id);
       page = {
-        _id: `page_${id}`,
-        id: `page_${id}`,
-        title: id.toUpperCase(),
-        slug: id.toLowerCase(),
+        _id: `page_${id.replace(/[^a-z0-9_-]/g, '_')}`,
+        id: `page_${id.replace(/[^a-z0-9_-]/g, '_')}`,
+        title,
+        slug: id,
         status: 'published',
-        draftVersion: { content: {}, sections: [], seo: {} },
+        draftVersion: { content: {}, sections: [], seo: { title, description: '' } },
         publishedVersion: { content: {}, sections: [], seo: {} },
       };
       mockPages.push(page);
@@ -364,11 +500,12 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// PUT /api/pages/:id - Update page content (supports draft saving or immediate publishing)
+// PUT /api/pages/:id - Update page content (supports draft saving or immediate publishing, including subpages)
 // Supports autoTranslate: true flag to auto-translate into all 32 languages on publish
-router.put('/:id', authorizeRole('SUPER_ADMIN', 'ADMIN', 'EDITOR', 'AUTHOR'), async (req, res) => {
+router.put('/:id(*)', authorizeRole('SUPER_ADMIN', 'ADMIN', 'EDITOR', 'AUTHOR'), async (req, res) => {
   try {
-    const { id } = req.params;
+    const rawId = req.params.id || req.params[0] || '';
+    const id = decodeURIComponent(rawId).toLowerCase().trim();
     const { title, slug, draftVersion, content, sections, seo, publish, status, autoTranslate } = req.body;
     const isPublishing = publish === true || status === 'published';
 
@@ -376,7 +513,7 @@ router.put('/:id', authorizeRole('SUPER_ADMIN', 'ADMIN', 'EDITOR', 'AUTHOR'), as
       let page = await findPageByIdOrSlug(id);
       if (!page) {
         page = new Page({
-          title: title || id,
+          title: title || formatPageTitle(id),
           slug: (slug || id).toLowerCase().trim(),
           status: isPublishing ? 'published' : 'draft',
           author: req.user._id || req.user.id,
@@ -456,12 +593,12 @@ router.put('/:id', authorizeRole('SUPER_ADMIN', 'ADMIN', 'EDITOR', 'AUTHOR'), as
       });
     }
 
-    let index = mockPages.findIndex((p) => p._id === id || p.id === id || p.slug === id.toLowerCase());
+    let index = mockPages.findIndex((p) => p._id === id || p.id === id || p.slug === id.toLowerCase() || p.slug === id.replace(/\//g, '-') || p.slug === id.replace(/-/g, '/'));
     if (index === -1) {
       mockPages.push({
-        _id: `page_${id}`,
-        id: `page_${id}`,
-        title: title || id,
+        _id: `page_${id.replace(/[^a-z0-9_-]/g, '_')}`,
+        id: `page_${id.replace(/[^a-z0-9_-]/g, '_')}`,
+        title: title || formatPageTitle(id),
         slug: (slug || id).toLowerCase(),
         status: isPublishing ? 'published' : 'draft',
         draftVersion: { content: content || {} },
